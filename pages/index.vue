@@ -1,230 +1,103 @@
+<script setup lang="ts">
+import { ref } from "vue"
+import { FactoryRuleProps } from "components/FactoryRule.vue"
+
+const appTitle = "RegEx Factory"
+const appDescription =
+  "RegEx Factory is a tool for transforming text with RegEx. It allows you to easily create rules and apply them to input text, providing you with the output text that matches your rules. With RegEx Factory, you can save time and effort in creating complex regular expressions, and focus on what really matters - your project."
+
+useSeoMeta({
+  title: appTitle,
+  description: appDescription,
+  ogTitle: appTitle,
+  ogDescription: appDescription,
+  ogImage: "[og:image]",
+  ogUrl: "[og:url]",
+  twitterTitle: appTitle,
+  twitterDescription: appDescription,
+  twitterImage: "[twitter:image]",
+  twitterCard: "summary",
+})
+
+useHead({
+  htmlAttrs: {
+    lang: "en",
+  },
+  link: [
+    {
+      rel: "icon",
+      type: "image/png",
+      href: "/favicon.png",
+    },
+  ],
+})
+
+// definePageMeta({
+//   colorMode: "light",
+// })
+
+const input = ref("")
+const output = ref("")
+
+const factoryRules = reactive<FactoryRuleProps[]>([])
+
+function applyRules () {
+  const regexFactory = new RegExFactory(factoryRules)
+  output.value = regexFactory.process(input.value)
+}
+
+const genRuleKey = (rule: FactoryRuleProps, i: number) =>
+  `${i}-${((rule.match.length * (rule.substitution.length || 1.68)) / 2) * rule.match.charCodeAt(0)}`.replace(".", "")
+
+watch([input, factoryRules], applyRules)
+</script>
+
 <template>
-  <div class="main-container">
-    <div class="heading">
-      <h1 class="heading__title">
-        Welcome to your new <span class="gradient__text">sidebase</span> app!
-      </h1>
-      <p class="heading__credits">
-        Read our documentation <a href="https://sidebase.io/sidebase/welcome" target="_blank">here</a>.
-        Get started in no time with the following amazing modules:
-      </p>
+  <div
+    class="flex flex-col h-screen transition-colors duration-300 fill-mode-forward max-h-screen text-primary-light-icon dark:text-primary-dark-icon border-primary-light-border dark:border-primary-dark-border"
+  >
+    <HeaderBar />
+    <div
+      class="grid lg:grid-cols-3 transition-colors duration-300 fill-mode-forward grow max-h-full lg:grid-rows-2 grid-rows-3 gap-1 justify-stretch items-stretch bg-primary-light-900 dark:bg-primary-dark-800 dark:text-neutral-200"
+    >
+      <div class="relative h-full transition-colors duration-300 fill-mode-forward lg:row-span-2">
+        <div
+          class="absolute inset-0 transition-colors duration-300 fill-mode-forward flex flex-col overflow-auto gap-1 px-2 lg:pb-2"
+        >
+          <RuleFactory
+            class="justify-between transition-colors duration-300 mt-2 lg:mt-8 fill-mode-forward sticky top-0 z-10 dark:bg-primary-dark-700 rounded-sm p-1 border border-primary-light-border dark:border-primary-dark-border"
+            @rule-created="(rule) => factoryRules.push(rule)"
+          />
+          <div
+            class="overflow-auto grow p-1 rounded-sm border transition-colors duration-300 fill-mode-forward border-primary-light-border dark:border-primary-dark-border bg-primary-light-700 dark:bg-primary-dark-700"
+          >
+            <FactoryRule
+              v-for="(rule, i) in factoryRules"
+              v-bind="rule"
+              :key="genRuleKey(rule, i)"
+              class="px-1 mb-1 text-lg bg-primary-light-900 dark:bg-primary-dark-500 rounded-sm border border-primary-light-border dark:border-primary-dark-border"
+              @update:is-reg-ex="(val) => (rule.isRegEx = val)"
+              @update:is-case-sensitive="(val) => (rule.isCaseSensitive = val)"
+              @update:is-whole-word="(val) => (rule.isWholeWord = val)"
+              @update:is-replace-all="(val) => (rule.isReplaceAll = val)"
+              @delete="() => factoryRules.splice(i, 1)"
+            />
+          </div>
+        </div>
+      </div>
+      <BigText v-model="input" label="Input:" class="px-2 lg:pl-0 lg:pt-2 lg:col-span-2" />
+      <BigText v-model="output" label="Output:" class="pb-2 px-2 lg:pl-0 lg:col-span-2" :readonly="true" />
     </div>
-    <div class="cards">
-      <div class="card prisma__card">
-        <div class="card__body">
-          <h2 class="card__title">
-            Prisma ORM
-          </h2>
-          <p>
-            Prisma unlocks a new level of developer experience when working with databases thanks to its intuitive data model, automated migrations, type-safety & auto-completion.
-          </p>
-        </div>
-        <p class="card__action">
-          <a class="card__link" href="https://sidebase.io/sidebase/components/prisma" target="_blank">
-            Read documentation
-          </a>
-          <a class="card__link" href="/prisma" target="_blank">
-            See example
-          </a>
-        </p>
-      </div>
-      <div class="card auth__card">
-        <div class="card__body">
-          <h2 class="card__title">
-            Authentication
-          </h2>
-          <p>
-            Nuxt user authentication and sessions through nuxt-auth. nuxt-auth wraps NextAuth.js to offer the reliability & convenience of a 12k star library to the nuxt 3 ecosystem with a native developer experience (DX)
-          </p>
-        </div>
-        <p class="card__action">
-          <a class="card__link" href="https://sidebase.io/nuxt-auth/getting-started" target="_blank">
-            Read documentation
-          </a>
-          <a class="card__link" href="/protected" target="_blank">
-            See example
-          </a>
-        </p>
-      </div>
-      <div class="card trpc__card">
-        <div class="card__body">
-          <h2 class="card__title">
-            tRPC
-          </h2>
-          <p>
-            tRPC allows you to easily build & consume fully typesafe APIs without schemas or code generation.
-          </p>
-        </div>
-        <p class="card__action">
-          <a class="card__link" href="https://sidebase.io/sidebase/components/trpc" target="_blank">
-            Read documentation
-          </a>
-          <a class="card__link" href="/trpc" target="_blank">
-            See example
-          </a>
-        </p>
-      </div>
-      <div class="card tailwind__card">
-        <div class="card__body">
-          <h2 class="card__title">
-            TailwindCSS
-          </h2>
-          <p>
-            Rapidly build modern websites without ever leaving your HTML.
-          </p>
-        </div>
-        <p class="card__action">
-          <a class="card__link" href="https://sidebase.io/sidebase/components/tailwindcss" target="_blank">
-            Read documentation
-          </a>
-        </p>
-      </div>
-      <div class="card naiveui__card">
-        <div class="card__body">
-          <h2 class="card__title">
-            NaiveUI
-          </h2>
-          <p>
-            A Vue 3 Component Library. Complete, Customizable, Uses TypeScript, Fast.
-          </p>
-        </div>
-        <p class="card__action">
-          <a class="card__link" href="https://www.naiveui.com/en-US/os-theme" target="_blank">
-            Read documentation
-          </a>
-        </p>
-      </div>
-    </div>
+    <Footer class="hidden xs:flex" />
   </div>
 </template>
 
-<style scoped>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
+<style>
+body {
+  height: 100vh;
+}
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    background-color: #eefbfc;
-    color: #484848;
-  }
-
-  .main-container {
-    max-width: 45vw;
-    margin: auto;
-    padding-top: 60px;
-  }
-
-  /* HEADING */
-
-  .heading {
-    text-align: center;
-  }
-
-  .heading__title {
-    font-weight: 600;
-    font-size: 40px;
-  }
-
-  .gradient__text {
-    background: linear-gradient(to right, #7bceb6 10%, #12a87b 40%, #0FCF97 60%, #7bceb6 90%);
-    background-size: 200% auto;
-    color: #000;
-    background-clip: text;
-    color: transparent;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: shine 1s linear infinite;
-  }
-
-  @keyframes shine {
-    to {
-        background-position: 200% center;
-    }
-  }
-
-  .heading__credits {
-    color: #888888;
-    font-size: 25px;
-    transition: all 0.5s;
-  }
-
-  .heading__credits a {
-    text-decoration: underline;
-  }
-
-  /* CARDS */
-  .cards {
-    display: grid;
-    gap: 20px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin-top: 30px;
-  }
-
-  .card {
-    padding: 20px;
-    width: 100%;
-    min-height: 200px;
-    display: grid;
-    grid-template-rows: 20px 50px 1fr 50px;
-    border-radius: 10px;
-    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.25);
-    transition: all 0.2s;
-    cursor: default;
-  }
-
-  .card:hover {
-    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.4);
-    transform: scale(1.01);
-  }
-
-  .card__link {
-    position: relative;
-    text-decoration: underline;
-    color: rgba(255, 255, 255, 0.9);
-  }
-
-  .card__title {
-    font-weight: 400;
-    color: #ffffff;
-    font-size: 30px;
-  }
-
-  .card__body {
-    grid-row: 2/4;
-  }
-
-  .card__body p {
-    color: #ffffff;
-  }
-
-  .card__action {
-    grid-row: 5/6;
-    align-self: center;
-    display: flex;
-    gap: 20px
-  }
-
-  /* RESPONSIVE */
-
-  @media (max-width: 1600px) {
-    .main-container {
-        max-width: 100vw;
-        padding: 50px;
-    }
-
-    .cards {
-        justify-content: center;
-        grid-template-columns: repeat(1, minmax(0, 1fr));
-    }
-  }
-
-    .prisma__card { background: radial-gradient(#3fbafe, #5A67D8FF); }
-    .auth__card { background: radial-gradient(#0FCF97, #0B9A71); }
-    .trpc__card { background: radial-gradient(#a07ccf, #926dc2); }
-    .tailwind__card { background: radial-gradient(#7466e3, #5a4ad9); }
-    .naiveui__card { background: radial-gradient(#ad6434, #995020); }
+#__nuxt {
+  height: 100vh;
+}
 </style>

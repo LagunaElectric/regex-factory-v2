@@ -4,6 +4,20 @@
     "browser": true,
     "node": true
   },
+  "rules": {
+    "semi": [
+      "error",
+      "never"
+    ],
+    "quotes": [
+      "error",
+      "double"
+    ],
+    "comma-dangle": [
+      "error",
+      "always-multiline"
+    ]
+  },
   "extends": [
     "@nuxtjs/eslint-config-typescript"
   ],
