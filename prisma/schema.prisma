@@ -10,14 +10,45 @@ datasource db {
   provider = "sqlite"
 
   // This value is read from the .env file.
-  url      = env("DATABASE_URL")
+  url = env("DATABASE_URL")
 }
 
-model Example {
-  id          String @id @default(uuid())
-  details     String
-}
 // users: id, email, name, pfp link
 // regex patterns: id, author id, title, description, pattern
 // rule sets: id, author id, title, description
 // rules: id, rule set id, author id, pattern id, substitution, flags
+
+model User {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  name        String?
+  displayName String? @unique
+  profilePic  String?
+  ruleSets    RuleSet[]
+  rules       Rule[]
+  createdAt   DateTime  @default(now())
+  editedAt    DateTime @default(now()) @updatedAt
+}
+
+model RuleSet {
+  id          String   @id @default(cuid())
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  title       String
+  description String?
+  rules       Rule[]
+  createdAt   DateTime @default(now())
+  editedAt    DateTime @default(now()) @updatedAt
+}
+
+model Rule {
+  id           String   @id @default(cuid())
+  ruleSet      RuleSet[]
+  author       User     @relation(fields: [authorId], references: [id])
+  match        String
+  substitution String
+  flags        String
+  authorId     String
+  createdAt    DateTime @default(now())
+  editedAt     DateTime @default(now()) @updatedAt
+}
