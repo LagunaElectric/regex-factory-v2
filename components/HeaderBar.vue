@@ -1,14 +1,80 @@
 <script setup>
+const { signIn, signOut, data: sessionData, status: sessionStatus } = useSession()
+
 const colorMode = useColorMode()
 const isDark = ref(colorMode.preference === "dark")
 const themeIcon = computedEager(() =>
   isDark.value ? "material-symbols:dark-mode-outline-rounded" : "material-symbols:light-mode-outline",
 )
 
+const profilePicLink = computed(() => sessionStatus.value === "authenticated"
+  ? sessionData.value.user.image
+  : "https://www.gravatar.com/avatar/9cc912f33c522b971c205647a9ba91c8?d=https://replit.com/public/images/evalbot/evalbot_29.png&s=256",
+)
+
+const commonProps = {
+  class: "hover:bg-primary-light-active hover:dark:bg-primary-dark-active mx-1 rounded-sm",
+}
+
+const authOptions = ref(sessionStatus.value === "unauthenticated"
+  ? [{
+      label: "Sign In",
+      value: "sign-in",
+      props: {
+        ...commonProps,
+        onClick: signIn,
+      },
+    }]
+  : [{
+      label: "Sign Out",
+      value: "sign-out",
+      props: {
+        ...commonProps,
+        onClick: signOut,
+      },
+    }],
+)
+
+const options = computed(() => [
+  {
+    label: "Settings",
+    value: "settings",
+    props: commonProps,
+  },
+  {
+    type: "divider",
+    props: commonProps,
+  },
+  ...authOptions.value,
+])
+
 watch(
   () => colorMode.preference,
   (preference) => {
     isDark.value = preference === "dark"
+  },
+)
+
+watch(
+  () => sessionStatus.value,
+  (status) => {
+    authOptions.value = status === "unauthenticated"
+      ? [{
+          label: "Sign In",
+          value: "sign-in",
+          props: {
+            ...commonProps,
+            onClick: signIn,
+          },
+        }]
+      : [{
+          label: "Sign Out",
+          value: "sign-out",
+          props: {
+            ...commonProps,
+            onClick: signOut,
+          },
+        }]
   },
 )
 
@@ -54,6 +120,9 @@ const toggleColorMode = () => {
         :name="themeIcon"
         @click="toggleColorMode"
       />
+      <n-dropdown trigger="click" :options="options" placement="bottom-end" :show-arrow="true" class="bg-primary-light-700 rounded-sm">
+        <n-avatar round size="medium" :src="profilePicLink" class="ml-4" />
+      </n-dropdown>
     </div>
   </div>
 </template>

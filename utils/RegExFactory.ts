@@ -23,12 +23,12 @@ export default class RegExFactory {
 
   removeRule(rule: ReplaceRule): RegExFactory {
     const index = this._rules.indexOf(rule)
-    if (index > -1) this._rules.splice(index, 1)
+    if (index > -1) { this._rules.splice(index, 1) }
     return this
   }
 
   removeRules(rules: ReplaceRule[]): RegExFactory {
-    for (const rule of rules) this.removeRule(rule)
+    for (const rule of rules) { this.removeRule(rule) }
     return this
   }
 
@@ -36,12 +36,13 @@ export default class RegExFactory {
     const rulesToUse = rules || this._rules
     let result = text
     for (const rule of rulesToUse) {
-      let { match, substitution, isRegEx, isCaseSensitive, isWholeWord, isReplaceAll } = rule
-      if (!isRegEx) match = match.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")
+      const { substitution, isRegEx, isCaseSensitive, isWholeWord, isReplaceAll } = rule
+      let { match } = rule
+      if (!isRegEx) { match = match.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&") }
       match = isWholeWord ? `\\b${match}\\b` : match
       let flags = "m"
-      if (!isCaseSensitive) flags += "i"
-      if (isReplaceAll) flags += "g"
+      if (!isCaseSensitive) { flags += "i" }
+      if (isReplaceAll) { flags += "g" }
       const regex = new RegExp(match, flags)
       result = result.replace(regex, substitution)
     }

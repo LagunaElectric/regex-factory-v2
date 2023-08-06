@@ -17,3 +17,7 @@ model Example {
   id          String @id @default(uuid())
   details     String
 }
+// users: id, email, name, pfp link
+// regex patterns: id, author id, title, description, pattern
+// rule sets: id, author id, title, description
+// rules: id, rule set id, author id, pattern id, substitution, flags
