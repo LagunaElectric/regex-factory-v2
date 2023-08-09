@@ -22,7 +22,7 @@ const authOptions = ref(sessionStatus.value === "unauthenticated"
       value: "sign-in",
       props: {
         ...commonProps,
-        onClick: signIn,
+        onClick: () => signIn("google"),
       },
     }]
   : [{
@@ -90,7 +90,7 @@ const toggleColorMode = () => {
     <span
       class="text-4xl transition-colors duration-300 fill-mode-forward font-bold self-center text-primary-light-icon dark:text-primary-dark-icon"
     >
-      <span class="bg-gradient-to-br bg-clip-text text-transparent from-red-500 to-orange-300">RegEx</span>Factory
+      <span class="bg-gradient-to-br bg-clip-text text-transparent from-red-500 to-orange-300" @click="console.log(hello.data.value)">RegEx</span>Factory
     </span>
     <div class="hidden xxs:flex gap-1 absolute lg:static right-2 sm:right-4 top-4">
       <NuxtLink

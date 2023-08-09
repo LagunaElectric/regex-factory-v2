@@ -21,3 +21,15 @@ const t = initTRPC.context<Context>().create({
 export const publicProcedure = t.procedure
 export const router = t.router
 export const middleware = t.middleware
+
+// TODO: Ask someone about this. It seems too simple.
+export const authenticatedProcedure = publicProcedure
+  .use(({ ctx, next }) => {
+    if (!ctx.session) {
+      throw createError({ statusMessage: "Session not found.", statusCode: 403 })
+    }
+    if ((new Date(ctx.session.expires)).getTime() < Date.now()) {
+      throw createError({ statusMessage: "Session expired.", statusCode: 403 })
+    }
+    return next()
+  })

@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { publicProcedure, router } from "../trpc"
+import { publicProcedure, authenticatedProcedure, router } from "../trpc"
 
 export const appRouter = router({
   hello: publicProcedure
@@ -11,6 +11,13 @@ export const appRouter = router({
     .query(({ input }) => {
       return {
         greeting: `hello ${input?.text ?? "world"}`,
+        time: new Date(),
+      }
+    }),
+  test: authenticatedProcedure
+    .query(({ ctx }) => {
+      return {
+        greeting: `hello ${ctx.session?.user?.name ?? "world"}`,
         time: new Date(),
       }
     }),
