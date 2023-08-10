@@ -26,6 +26,11 @@ const authOptions = ref(sessionStatus.value === "unauthenticated"
       },
     }]
   : [{
+      label: "Settings",
+      value: "settings",
+      props: commonProps,
+    },
+    {
       label: "Sign Out",
       value: "sign-out",
       props: {
@@ -36,11 +41,6 @@ const authOptions = ref(sessionStatus.value === "unauthenticated"
 )
 
 const options = computed(() => [
-  {
-    label: "Settings",
-    value: "settings",
-    props: commonProps,
-  },
   {
     type: "divider",
     props: commonProps,

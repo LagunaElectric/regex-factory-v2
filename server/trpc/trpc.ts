@@ -7,7 +7,7 @@
  * @see https://trpc.io/docs/v10/router
  * @see https://trpc.io/docs/v10/procedures
  */
-import { initTRPC } from "@trpc/server"
+import { TRPCError, initTRPC } from "@trpc/server"
 import superjson from "superjson"
 import { Context } from "~/server/trpc/context"
 
@@ -26,10 +26,10 @@ export const middleware = t.middleware
 export const authenticatedProcedure = publicProcedure
   .use(({ ctx, next }) => {
     if (!ctx.session) {
-      throw createError({ statusMessage: "Session not found.", statusCode: 403 })
+      throw new TRPCError({ message: "Session not found.", code: "UNAUTHORIZED" })
     }
     if ((new Date(ctx.session.expires)).getTime() < Date.now()) {
-      throw createError({ statusMessage: "Session expired.", statusCode: 403 })
+      throw new TRPCError({ message: "Session expired.", code: "UNAUTHORIZED" })
     }
     return next()
   })

@@ -1,6 +1,19 @@
 <script setup lang="ts">
+
 import { ref } from "vue"
 import { FactoryRuleProps } from "components/FactoryRule.vue"
+
+const { $client } = useNuxtApp()
+const { status: sessionStatus } = useSession()
+
+const user = await $client.getUser.useQuery()
+
+if (sessionStatus.value === "authenticated") {
+  if (!Object.keys(user.data.value).length) {
+    await $client.createUser.mutate()
+    await user.refresh()
+  }
+}
 
 const appTitle = "RegEx Factory"
 const appDescription =
@@ -17,19 +30,6 @@ useSeoMeta({
   twitterDescription: appDescription,
   twitterImage: "[twitter:image]",
   twitterCard: "summary",
-})
-
-useHead({
-  htmlAttrs: {
-    lang: "en",
-  },
-  link: [
-    {
-      rel: "icon",
-      type: "image/png",
-      href: "/favicon.png",
-    },
-  ],
 })
 
 // definePageMeta({
