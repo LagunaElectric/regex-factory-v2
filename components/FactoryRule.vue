@@ -95,7 +95,8 @@ const requestDelete = () => {
     </div>
     <div class="flex gap-1 h-fit items-center shrink-0 dark:text-primary-dark-icon">
       <IconButton
-        name="mdi:regex"
+        icon-name="mdi:regex"
+        tooltip="Use RegEx"
         class="rounded-sm transition-colors duration-300 fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active hover:dark:bg-primary-dark-active"
         :class="{
           'bg-primary-light-active dark:bg-primary-dark-active': props.isRegEx,
@@ -103,7 +104,8 @@ const requestDelete = () => {
         @click="toggleRegEx"
       />
       <IconButton
-        name="mdi:format-letter-case"
+        icon-name="mdi:format-letter-case"
+        tooltip="Match Case"
         class="rounded-sm transition-colors duration-300 fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active hover:dark:bg-primary-dark-active"
         :class="{
           'bg-primary-light-active dark:bg-primary-dark-active': props.isCaseSensitive,
@@ -111,7 +113,8 @@ const requestDelete = () => {
         @click="toggleCaseSensitive"
       />
       <IconButton
-        name="material-symbols:match-word-rounded"
+        icon-name="material-symbols:match-word-rounded"
+        tooltip="Match Whole Word"
         class="rounded-sm transition-colors duration-300 fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active hover:dark:bg-primary-dark-active"
         :class="{
           'bg-primary-light-active dark:bg-primary-dark-active ': props.isWholeWord,
@@ -119,7 +122,8 @@ const requestDelete = () => {
         @click="toggleWholeWord"
       />
       <IconButton
-        name="codicon:replace-all"
+        icon-name="codicon:replace-all"
+        tooltip="Replace All"
         class="rounded-sm transition-colors duration-300 fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active hover:dark:bg-primary-dark-active"
         :class="{
           'bg-primary-light-active dark:bg-primary-dark-active ': props.isReplaceAll,
@@ -127,7 +131,8 @@ const requestDelete = () => {
         @click="toggleReplaceAll"
       />
       <IconButton
-        name="mdi:delete-outline"
+        icon-name="mdi:delete-outline"
+        tooltip="Delete"
         class="rounded-sm text-red-400 transition-colors duration-300 fill-mode-forward hover:bg-primary-light-active hover:dark:bg-primary-dark-active"
         @click="requestDelete"
       />

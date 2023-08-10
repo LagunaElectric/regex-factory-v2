@@ -100,7 +100,8 @@ const toggleColorMode = () => {
       >
         <IconButton
           class="w-8 h-8 transition-colors duration-300 fill-mode-forward rounded-sm grow text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active dark:hover:bg-primary-dark-active hidden sm:flex"
-          name="brandico:github"
+          icon-name="brandico:github"
+          tooltip="GitHub"
           tabindex="-1"
         />
       </NuxtLink>
@@ -111,17 +112,19 @@ const toggleColorMode = () => {
       >
         <IconButton
           class="w-8 h-8 transition-colors duration-300 fill-mode-forward rounded-sm grow text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active dark:hover:bg-primary-dark-active hidden xs:flex"
-          name="simple-icons:paypal"
+          icon-name="simple-icons:paypal"
+          tooltip="Donate via PayPal"
           tabindex="-1"
         />
       </NuxtLink>
       <IconButton
         class="w-8 h-8 transition-colors duration-300 fill-mode-forward rounded-sm grow text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active dark:hover:bg-primary-dark-active"
-        :name="themeIcon"
+        :icon-name="themeIcon"
+        tooltip="Toggle Theme"
         @click="toggleColorMode"
       />
       <n-dropdown trigger="click" :options="options" placement="bottom-end" :show-arrow="true" class="bg-primary-light-700 rounded-sm">
-        <n-avatar round size="medium" :src="profilePicLink" class="ml-4" />
+        <n-avatar round size="medium" :src="profilePicLink" class="ml-4 cursor-pointer" />
       </n-dropdown>
     </div>
   </div>
