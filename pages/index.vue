@@ -32,10 +32,6 @@ useSeoMeta({
   twitterCard: "summary",
 })
 
-// definePageMeta({
-//   colorMode: "light",
-// })
-
 const input = ref("")
 const output = ref("")
 
