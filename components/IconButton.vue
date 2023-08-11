@@ -16,7 +16,7 @@ const props = defineProps<IconButtonProps>()
     v-tooltip.bottom="{
       content: props.tooltip,
       triggers: ['hover'],
-      delay: { show: 500 },
+      delay: { show: 500, hide: 0 },
       distance: 12,
       show: true,
     }"
