@@ -95,7 +95,7 @@ watch([input, factoryRules], applyRules)
             drag-class="bg-primary dark:bg-primary
             border-2 border-primary-hover text-white
             transition duration-100 ease-in z-50
-            transform rotate-6 scale-110"
+            transform rotate-6 scale-110 cursor-grabbing"
             drop-class="transition duration-100
             ease-in z-50 transform
             -rotate-2 scale-90"
@@ -108,7 +108,7 @@ watch([input, factoryRules], applyRules)
             >
               <FactoryRule
                 v-bind="rule"
-                class="px-1 text-lg bg-primary-light-900 dark:bg-primary-dark-500 rounded-sm border border-primary-light-border dark:border-primary-dark-border"
+                class="cursor-grab px-1 text-lg bg-primary-light-900 dark:bg-primary-dark-500 rounded-sm border border-primary-light-border dark:border-primary-dark-border"
                 @update:is-reg-ex="(val) => (rule.isRegEx = val)"
                 @update:is-case-sensitive="(val) => (rule.isCaseSensitive = val)"
                 @update:is-whole-word="(val) => (rule.isWholeWord = val)"

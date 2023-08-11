@@ -24,7 +24,7 @@ const truncated = computed(() => {
 </script>
 
 <template>
-  <span
+  <div
     ref="spanRef"
     v-tooltip.top-start="{
       content: props.text,
@@ -32,5 +32,7 @@ const truncated = computed(() => {
       delay: { show: 500, hide: 0 },
       distance: 12,
     }"
-  >{{ truncated }}</span>
+  >
+    <span class="cursor-text">{{ truncated }}</span>
+  </div>
 </template>
