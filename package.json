@@ -38,7 +38,7 @@
     "next-auth": "^4.22.3",
     "superjson": "^1.13.1",
     "trpc-nuxt": "^0.7.0",
-    "vue-smooth-dnd": "^0.8.1",
+    "vue3-smooth-dnd": "^0.0.5",
     "zod": "^3.21.4"
   }
 }

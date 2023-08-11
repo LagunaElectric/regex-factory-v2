@@ -29,9 +29,9 @@ dependencies:
   trpc-nuxt:
     specifier: ^0.7.0
     version: 0.7.0(@trpc/client@10.36.0)(@trpc/server@10.36.0)
-  vue-smooth-dnd:
-    specifier: ^0.8.1
-    version: 0.8.1
+  vue3-smooth-dnd:
+    specifier: ^0.0.5
+    version: 0.0.5(vue@3.3.4)
   zod:
     specifier: ^3.21.4
     version: 3.21.4
@@ -9436,12 +9436,6 @@ packages:
       vue: 3.3.4
     dev: true
 
-  /vue-smooth-dnd@0.8.1:
-    resolution: {integrity: sha512-eZVVPTwz4A1cs0+CjXx/ihV+gAl3QBoWQnU6+23Gp59t0WBU99z7ducBQ4FvjBamqOlg8SDOE5eFHQedxwB4Wg==}
-    dependencies:
-      smooth-dnd: 0.12.1
-    dev: false
-
   /vue-template-compiler@2.7.14:
     resolution: {integrity: sha512-zyA5Y3ArvVG0NacJDkkzJuPQDF8RFeRlzV2vLeSnhSpieO6LK2OVbdLPi5MPPs09Ii+gMO8nY4S3iKQxBxDmWQ==}
     dependencies:
@@ -9460,6 +9454,15 @@ packages:
       semver: 7.5.4
       typescript: 4.9.5
     dev: true
+
+  /vue3-smooth-dnd@0.0.5(vue@3.3.4):
+    resolution: {integrity: sha512-A+l/ozaTGpFbw4fOdj4whmk+MedesOu/mBJgT3MfV+0XFvK44PLAMHB9vXn4lxaBlhZ/gRFs2TzG0kf24s1+3A==}
+    peerDependencies:
+      vue: ^3.0.11
+    dependencies:
+      smooth-dnd: 0.12.1
+      vue: 3.3.4
+    dev: false
 
   /vue@3.3.4:
     resolution: {integrity: sha512-VTyEYn3yvIeY1Py0WaYGZsXnz3y5UnGi62GjVEqvEGPl6nxbOrCXbVOTQWBEJUqAyTUk2uJ5JLVnYJ6ZzGbrSw==}

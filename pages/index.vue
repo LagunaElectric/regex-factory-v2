@@ -1,7 +1,16 @@
 <script setup lang="ts">
+// @ts-expect-error - Ignore missing types
+import { Container, Draggable } from "vue3-smooth-dnd"
 
 import { ref } from "vue"
 import { FactoryRuleProps } from "components/FactoryRule.vue"
+
+type DragResult = {
+  removedIndex: number | null
+  addedIndex: number | null
+  payload: FactoryRuleProps
+  droppedElement: any
+}
 
 const { $client } = useNuxtApp()
 const { status: sessionStatus } = useSession()
@@ -45,6 +54,24 @@ function applyRules() {
 const genRuleKey = (rule: FactoryRuleProps, i: number) =>
   `${i}-${((rule.match.length * (rule.substitution.length || 1.68)) / 2) * rule.match.charCodeAt(0)}`.replace(".", "")
 
+const applyDrag = (arr: typeof factoryRules, dragResult: DragResult) => {
+  const { removedIndex, addedIndex, payload } = dragResult
+
+  if (removedIndex === null && addedIndex === null) { return arr }
+  let itemToAdd = payload
+
+  if (removedIndex !== null) {
+    itemToAdd = arr.splice(removedIndex, 1)[0]
+  }
+  if (addedIndex !== null) {
+    arr.splice(addedIndex, 0, itemToAdd)
+  }
+}
+
+const onDrop = (e: DragResult) => {
+  applyDrag(factoryRules, e)
+}
+
 watch([input, factoryRules], applyRules)
 </script>
 
@@ -61,24 +88,35 @@ watch([input, factoryRules], applyRules)
           class="absolute inset-0 transition-colors duration-300 fill-mode-forward flex flex-col overflow-auto gap-1 px-2 lg:pb-2"
         >
           <RuleFactory
-            class="justify-between transition-colors duration-300 mt-2 lg:mt-8 fill-mode-forward sticky top-0 z-10 dark:bg-primary-dark-700 rounded-sm p-1 border border-primary-light-border dark:border-primary-dark-border"
+            class="justify-between transition-colors duration-300 mt-2 fill-mode-forward sticky top-0 z-10 dark:bg-primary-dark-700 rounded-sm p-1 border border-primary-light-border dark:border-primary-dark-border"
             @rule-created="(rule) => factoryRules.push(rule)"
           />
-          <div
-            class="overflow-auto grow p-1 rounded-sm border transition-colors duration-300 fill-mode-forward border-primary-light-border dark:border-primary-dark-border bg-primary-light-700 dark:bg-primary-dark-700"
+          <Container
+            drag-class="bg-primary dark:bg-primary
+            border-2 border-primary-hover text-white
+            transition duration-100 ease-in z-50
+            transform rotate-6 scale-110"
+            drop-class="transition duration-100
+            ease-in z-50 transform
+            -rotate-2 scale-90"
+            class="space-y-1 overflow-y-auto overflow-x-hidden grow p-1 rounded-sm border transition-colors duration-300 fill-mode-forward border-primary-light-border dark:border-primary-dark-border bg-primary-light-700 dark:bg-primary-dark-700"
+            @drop="(e: DragResult) => onDrop(e)"
           >
-            <FactoryRule
+            <Draggable
               v-for="(rule, i) in factoryRules"
-              v-bind="rule"
               :key="genRuleKey(rule, i)"
-              class="px-1 mb-1 text-lg bg-primary-light-900 dark:bg-primary-dark-500 rounded-sm border border-primary-light-border dark:border-primary-dark-border"
-              @update:is-reg-ex="(val) => (rule.isRegEx = val)"
-              @update:is-case-sensitive="(val) => (rule.isCaseSensitive = val)"
-              @update:is-whole-word="(val) => (rule.isWholeWord = val)"
-              @update:is-replace-all="(val) => (rule.isReplaceAll = val)"
-              @delete="() => factoryRules.splice(i, 1)"
-            />
-          </div>
+            >
+              <FactoryRule
+                v-bind="rule"
+                class="px-1 text-lg bg-primary-light-900 dark:bg-primary-dark-500 rounded-sm border border-primary-light-border dark:border-primary-dark-border"
+                @update:is-reg-ex="(val) => (rule.isRegEx = val)"
+                @update:is-case-sensitive="(val) => (rule.isCaseSensitive = val)"
+                @update:is-whole-word="(val) => (rule.isWholeWord = val)"
+                @update:is-replace-all="(val) => (rule.isReplaceAll = val)"
+                @delete="() => factoryRules.splice(i, 1)"
+              />
+            </Draggable>
+          </Container>
         </div>
       </div>
       <BigText v-model="input" label="Input:" class="px-2 lg:pl-0 lg:pt-2 lg:col-span-2" />
@@ -95,5 +133,9 @@ body {
 
 #__nuxt {
   height: 100vh;
+}
+
+.smooth-dnd-drop-preview-constant-class {
+  background-color: red !important;
 }
 </style>
