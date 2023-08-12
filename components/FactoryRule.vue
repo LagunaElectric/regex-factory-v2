@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ReplaceRule } from "utils/ReplaceRule"
+import Rule from "utils/Rule"
 
-export interface FactoryRuleProps extends ReplaceRule {
+export interface FactoryRuleProps extends Rule {
   isRegEx: boolean
   isCaseSensitive: boolean
   isWholeWord: boolean
@@ -109,3 +109,4 @@ const requestDelete = () => {
     </div>
   </div>
 </template>
+utils/Rule

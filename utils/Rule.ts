@@ -1,4 +1,4 @@
-export interface ReplaceRule {
+export default interface Rule {
   match: string
   substitution: string
   isRegEx?: boolean

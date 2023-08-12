@@ -1,9 +1,9 @@
 <script setup lang="ts">
 // @ts-expect-error - Ignore missing types
 import { Container, Draggable } from "vue3-smooth-dnd"
-
 import { ref } from "vue"
 import { FactoryRuleProps } from "components/FactoryRule.vue"
+import RuleSet from "utils/RuleSet"
 
 type DragResult = {
   removedIndex: number | null
@@ -47,8 +47,8 @@ const output = ref("")
 const factoryRules = reactive<FactoryRuleProps[]>([])
 
 function applyRules() {
-  const regexFactory = new RegExFactory(factoryRules)
-  output.value = regexFactory.process(input.value)
+  const regexFactory = new RuleSet(factoryRules)
+  output.value = regexFactory.apply(input.value)
 }
 
 const genRuleKey = (rule: FactoryRuleProps, i: number) =>
