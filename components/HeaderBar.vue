@@ -94,7 +94,7 @@ const toggleColorMode = () => {
     </span>
     <div class="hidden xxs:flex gap-1 absolute lg:static right-2 sm:right-4 top-4">
       <NuxtLink
-        to="https://www.github.com/LagunaElectric/regex-factory"
+        to="https://github.com/LagunaElectric/regex-factory-v2"
         class="focus-visible:outline-offset-0 focus-visible:outline-2 focus-visible:outline-double focus-visible:outline-primary-light-icon dark:focus-visible:outline-primary-dark-icon rounded-sm"
         target="_blank"
       >
