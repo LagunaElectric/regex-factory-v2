@@ -15,7 +15,7 @@ const spanWidthInChars = computed(() => {
   if (!props.letterWidth) { return 0 }
   return Math.floor(spanWidth.value / props.letterWidth)
 })
-const isOverflown = computed(() => spanWidthInChars.value < props.text.length)
+const isOverflown = computed(() => spanWidthInChars.value && spanWidthInChars.value < props.text.length)
 const truncated = computed(() => {
   if (isOverflown.value) { return props.text.slice(0, spanWidthInChars.value - 3).trim() + "..." }
   return props.text

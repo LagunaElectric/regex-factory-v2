@@ -1,30 +1,47 @@
 import Rule from "./Rule"
 
 export default class RuleSet {
-  private _rules: Ref<Rule[]>
+  private _rules: Rule[]
+  name: Ref<string>
 
-  constructor(ruleSet?: Rule[]) {
-    this._rules = ref(ruleSet || [])
+  constructor(name?: string, ruleSet?: Rule[]) {
+    this._rules = reactive<Rule[]>(ruleSet || [])
+    this.name = ref(name || "Untitled Rule Set")
   }
 
   get rules(): Rule[] {
-    return this._rules.value
+    return this._rules
   }
 
   addRule(rule: Rule): RuleSet {
-    this._rules.value.push(rule)
+    this._rules.push(rule)
     return this
   }
 
   addRules(rules: Rule[]): RuleSet {
-    this._rules.value = this._rules.value.concat(rules)
+    this._rules = this._rules.concat(rules)
+    return this
+  }
+
+  insertRule(rule: Rule, index: number): RuleSet {
+    this._rules.splice(index, 0, rule)
     return this
   }
 
   removeRule(rule: Rule): RuleSet {
-    const index = this._rules.value.indexOf(rule)
-    if (index > -1) { this._rules.value.splice(index, 1) }
+    const index = this._rules.indexOf(rule)
+    if (index > -1) { this._rules.splice(index, 1) }
     return this
+  }
+
+  /**
+   * The function removes a rule at a specific index from an array and returns the removed rule.
+   * @param {number} index - The index parameter is the position of the rule that you want to remove
+   * from the array of rules. It is a number that represents the index of the rule in the array.
+   * @returns The method is returning the removed rule at the specified index.
+   */
+  removeRuleAt(index: number): Rule {
+    return this._rules.splice(index, 1)[0]
   }
 
   removeRules(rules: Rule[]): RuleSet {
@@ -32,7 +49,7 @@ export default class RuleSet {
     return this
   }
 
-  apply(text: string, rules: Rule[] = this._rules.value) {
+  apply(text: string, rules: Rule[] = this._rules) {
     return rules.reduce((result, rule) => {
       const { substitution, isRegEx, isCaseSensitive, isWholeWord, isReplaceAll } = rule
       let { match } = rule

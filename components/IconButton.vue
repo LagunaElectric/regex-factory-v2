@@ -18,7 +18,6 @@ const props = defineProps<IconButtonProps>()
       triggers: ['hover'],
       delay: { show: 500, hide: 0 },
       distance: 12,
-      show: true,
     }"
     class="px-1 py-1 flex focus-visible:outline-2 focus-visible:outline-double focus-visible:outline-primary-light-icon dark:focus-visible:outline-primary-dark-icon justify-center items-center cursor-pointer"
   >

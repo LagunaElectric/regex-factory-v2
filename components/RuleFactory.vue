@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue"
-import { FactoryRuleProps } from "./FactoryRule.vue"
+import Rule from "utils/Rule"
 const emit = defineEmits(["ruleCreated"])
 
 const match = ref("")
@@ -46,7 +46,7 @@ function createRule() {
     isCaseSensitive: isCaseSensitive.value,
     isWholeWord: isWholeWord.value,
     isReplaceAll: isReplaceAll.value,
-  } as FactoryRuleProps)
+  } as Rule)
   reset()
   matchInputRef.value?.focus()
 }
