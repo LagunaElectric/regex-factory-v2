@@ -2,11 +2,11 @@ import Rule from "./Rule"
 
 export default class RuleSet {
   private _rules: Rule[]
-  name: Ref<string>
+  title: Ref<string>
 
   constructor(name?: string, ruleSet?: Rule[]) {
     this._rules = reactive<Rule[]>(ruleSet || [])
-    this.name = ref(name || "Untitled Rule Set")
+    this.title = ref(name || "Untitled Rule Set")
   }
 
   get rules(): Rule[] {

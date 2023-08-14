@@ -88,7 +88,7 @@ watch([input, factoryRules.rules], applyRules)
             class="justify-between transition-colors duration-300 mt-2 fill-mode-forward sticky top-0 z-10 dark:bg-primary-dark-700 rounded-sm p-1 border border-primary-light-border dark:border-primary-dark-border"
             @rule-created="(rule) => factoryRules.addRule(rule)"
           />
-          <EditableText v-model="factoryRules.name.value" />
+          <EditableText v-model="factoryRules.title.value" />
           <Container
             drag-class="bg-primary dark:bg-primary
             border-2 border-primary-hover text-white
