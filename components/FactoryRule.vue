@@ -102,4 +102,3 @@ const requestDelete = () => {
     </div>
   </div>
 </template>
-utils/Rule

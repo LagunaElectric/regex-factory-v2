@@ -2,11 +2,38 @@ import Rule from "./Rule"
 
 export default class RuleSet {
   private _rules: Rule[]
+  private _isSaved: boolean
   title: Ref<string>
 
-  constructor(name?: string, ruleSet?: Rule[]) {
+  constructor(title?: string, ruleSet?: Rule[], isSaved?: boolean) {
     this._rules = reactive<Rule[]>(ruleSet || [])
-    this.title = ref(name || "Untitled Rule Set")
+    this.title = ref(title || "Untitled Rule Set")
+    this._isSaved = isSaved || false
+  }
+
+  private async _save() {
+    const { $client } = useNuxtApp()
+
+    try {
+      const ruleSet = await $client.createRuleSet.mutate({
+        title: this.title.value,
+        ruleSet: this._rules,
+      })
+      this._isSaved = true
+      console.log(ruleSet)
+      return ruleSet
+    } catch (error) {
+      console.error(error)
+      console.log(typeof error)
+    }
+  }
+
+  async save() {
+    await this._save()
+  }
+
+  get isSaved(): boolean {
+    return this._isSaved
   }
 
   get rules(): Rule[] {

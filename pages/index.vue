@@ -89,6 +89,13 @@ watch([input, factoryRules.rules], applyRules)
             @rule-created="(rule) => factoryRules.addRule(rule)"
           />
           <EditableText v-model="factoryRules.title.value" />
+
+          <IconButton
+            class="w-8 h-8 transition-colors duration-300 fill-mode-forward rounded-sm grow text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active dark:hover:bg-primary-dark-active"
+            tooltip="test"
+            icon-name="mdi:test-tube"
+            @click="factoryRules.save()"
+          />
           <Container
             drag-class="bg-primary dark:bg-primary
             border-2 border-primary-hover text-white

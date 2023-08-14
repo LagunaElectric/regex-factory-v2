@@ -26,24 +26,36 @@ model RuleSet {
   id          String   @id @default(cuid())
   authorId    String
   author      User     @relation(fields: [authorId], references: [id])
-  title       String
+  title       String   @unique
   description String?
-  rules       Rule[]
+  rules       RulesInSets[]
   createdAt   DateTime @default(now())
   editedAt    DateTime @default(now()) @updatedAt
 }
 
 model Rule {
   id           String   @id @default(cuid())
-  ruleSet      RuleSet[]
+  ruleSet      RulesInSets[]
   author       User     @relation(fields: [authorId], references: [id])
   match        String
   substitution String
-  isRegex      Boolean  @default(false)
+  isRegEx      Boolean  @default(false)
   isCaseSensitive Boolean @default(false)
   isWholeWord  Boolean  @default(false)
   isReplaceAll Boolean  @default(false)
   authorId     String
   createdAt    DateTime @default(now())
   editedAt     DateTime @default(now()) @updatedAt
+}
+
+model RulesInSets {
+  rule      Rule     @relation(fields: [ruleId], references: [id])
+  ruleId    String
+  ruleSet   RuleSet  @relation(fields: [ruleSetId], references: [id])
+  ruleSetId String
+  order     Int
+  createdAt DateTime @default(now())
+  editedAt  DateTime @default(now()) @updatedAt
+
+  @@id([ruleId, ruleSetId])
 }

@@ -1,22 +1,9 @@
 import { z } from "zod"
 import _ from "lodash"
 import { TRPCError } from "@trpc/server"
-import { publicProcedure, authenticatedProcedure, router } from "../trpc"
-import RuleSet from "utils/RuleSet"
+import { authenticatedProcedure, router } from "../trpc"
 
 export const appRouter = router({
-  hello: publicProcedure
-    .input(
-      z.object({
-        text: z.string().nullish(),
-      }),
-    )
-    .query(({ input }) => {
-      return {
-        greeting: `hello ${input?.text ?? "world"}`,
-        time: new Date(),
-      }
-    }),
   getUser: authenticatedProcedure
     .query(async({ ctx }) => {
       const user = await ctx.prisma.user.findUnique({
@@ -56,12 +43,22 @@ export const appRouter = router({
     }),
   createRuleSet: authenticatedProcedure
     .input(z.object({
-      ruleSet: z.custom<RuleSet>((ruleSet) => {
-        return ruleSet instanceof RuleSet
-      }),
+      title: z.string(),
+      description: z.optional(z.string()),
+      ruleSet: z.array(z.object({
+        match: z.string(),
+        substitution: z.string(),
+        isRegEx: z.optional(z.boolean()),
+        isCaseSensitive: z.optional(z.boolean()),
+        isWholeWord: z.optional(z.boolean()),
+        isReplaceAll: z.optional(z.boolean()),
+      })),
     })).mutation(async({ ctx, input }) => {
-      const { ruleSet } = input
+      const { title, description, ruleSet } = input
       const user = await ctx.prisma.user.findUnique({
+        select: {
+          id: true,
+        },
         where: {
           email: ctx.session!.user?.email ?? "",
         },
@@ -72,23 +69,46 @@ export const appRouter = router({
           code: "NOT_FOUND",
         })
       }
+
+      const existingRuleSet = await ctx.prisma.ruleSet.findFirst({
+        where: {
+          title,
+          authorId: user.id,
+        },
+      })
+      if (existingRuleSet && Object.keys(existingRuleSet).length) {
+        throw new TRPCError({
+          message: "Failed to save Rule Set: Rule Set already exists",
+          code: "CONFLICT",
+        })
+      }
+
       const createdRuleSet = await ctx.prisma.ruleSet.create({
         data: {
-          title: ruleSet.title.value,
+          title,
           authorId: user.id,
+          description,
           rules: {
-            create: ruleSet.rules.map((rule) => {
+            create: ruleSet.map((rule, i) => {
               return {
-                match: rule.match,
-                substitution: rule.substitution,
-                isRegEx: rule.isRegEx,
-                isCaseSensitive: rule.isCaseSensitive,
-                isWholeWord: rule.isWholeWord,
-                isReplaceAll: rule.isReplaceAll,
-                authorId: user.id,
+                order: i,
+                rule: {
+                  create: {
+                    match: rule.match,
+                    substitution: rule.substitution,
+                    isRegEx: !!rule.isRegEx,
+                    isCaseSensitive: !!rule.isCaseSensitive,
+                    isWholeWord: !!rule.isWholeWord,
+                    isReplaceAll: !!rule.isReplaceAll,
+                    authorId: user.id,
+                  },
+                },
               }
             }),
           },
+        },
+        include: {
+          rules: true,
         },
       })
       return createdRuleSet
