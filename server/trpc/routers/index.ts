@@ -113,6 +113,148 @@ export const appRouter = router({
       })
       return createdRuleSet
     }),
+  updateRuleSet: authenticatedProcedure
+    .input(z.object({
+      title: z.string().optional(),
+      description: z.string().optional(),
+      ruleSet: z.array(z.object({
+        match: z.string(),
+        substitution: z.string(),
+        isRegEx: z.boolean(),
+        isCaseSensitive: z.boolean(),
+        isWholeWord: z.boolean(),
+        isReplaceAll: z.boolean(),
+      })).optional(),
+    })).mutation(async({ ctx, input }) => {
+      const { title, description, ruleSet } = input
+      const user = await ctx.prisma.user.findUnique({
+        select: {
+          id: true,
+        },
+        where: {
+          email: ctx.session!.user?.email ?? "",
+        },
+      })
+      if (!user || !Object.keys(user).length) {
+        throw new TRPCError({
+          message: "Failed to save Rule Set: User not found",
+          code: "UNAUTHORIZED",
+        })
+      }
+
+      const existingRuleSet = await ctx.prisma.ruleSet.findFirst({
+        where: {
+          title,
+          authorId: user.id,
+        },
+      })
+      if (!existingRuleSet || !Object.keys(existingRuleSet).length) {
+        throw new TRPCError({
+          message: "Failed to save Rule Set: Rule Set not found",
+          code: "NOT_FOUND",
+        })
+      }
+
+      let updatedRuleSet = await ctx.prisma.ruleSet.update({
+        where: { id: existingRuleSet.id },
+        data: {
+          title,
+          description,
+        },
+        include: {
+          rules: true,
+        },
+      })
+
+      if (!ruleSet || !ruleSet.length) { return updatedRuleSet }
+
+      const ruleSetWithIds: {
+        id: string | undefined
+        match: string
+        substitution: string
+        isRegEx: boolean
+        isCaseSensitive: boolean
+        isWholeWord: boolean
+        isReplaceAll: boolean
+      }[] = await Promise.all(ruleSet.map(async(rule) => {
+        const existingRule = await ctx.prisma.rule.findFirst({
+          where: {
+            match: rule.match,
+            substitution: rule.substitution,
+            isRegEx: !!rule.isRegEx,
+            isCaseSensitive: !!rule.isCaseSensitive,
+            isWholeWord: !!rule.isWholeWord,
+            isReplaceAll: !!rule.isReplaceAll,
+            authorId: user.id,
+          },
+        })
+        if (existingRule && Object.keys(existingRule).length) {
+          return {
+            ...rule,
+            id: existingRule.id,
+          }
+        }
+        return {
+          ...rule,
+          id: undefined,
+        }
+      }))
+
+      await Promise.all(ruleSetWithIds.map(async(rule, i) => {
+        await ctx.prisma.rule.upsert({
+          where: { id: rule.id || "" },
+          update: {
+            match: rule.match,
+            substitution: rule.substitution,
+            isRegEx: !!rule.isRegEx,
+            isCaseSensitive: !!rule.isCaseSensitive,
+            isWholeWord: !!rule.isWholeWord,
+            isReplaceAll: !!rule.isReplaceAll,
+            ruleSet: {
+              update: {
+                where: {
+                  ruleId_ruleSetId: {
+                    ruleId: rule.id || "",
+                    ruleSetId: updatedRuleSet.id,
+                  },
+                },
+                data: {
+                  order: i,
+                },
+              },
+            },
+
+          },
+          create: {
+            match: rule.match,
+            substitution: rule.substitution,
+            isRegEx: !!rule.isRegEx,
+            isCaseSensitive: !!rule.isCaseSensitive,
+            isWholeWord: !!rule.isWholeWord,
+            isReplaceAll: !!rule.isReplaceAll,
+            authorId: user.id,
+            ruleSet: {
+              create: {
+                order: i,
+                ruleSet: {
+                  connect: {
+                    id: updatedRuleSet.id,
+                  },
+                },
+              },
+            },
+          },
+        })
+      }))
+
+      updatedRuleSet = await ctx.prisma.ruleSet.findUnique({
+        where: { id: updatedRuleSet.id },
+        include: {
+          rules: true,
+        },
+      }) ?? updatedRuleSet
+      return updatedRuleSet
+    }),
 })
 
 // export type definition of API

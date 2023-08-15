@@ -12,7 +12,7 @@ export default class RuleSet {
     this._isSaved = isSaved || false
   }
 
-  private _handleSaveError(error: unknown) {
+  private async _handleSaveError(error: unknown) {
     if (!(error instanceof TRPCClientError)) {
       // eslint-disable-next-line no-console
       console.error(error)
@@ -21,10 +21,13 @@ export default class RuleSet {
     const { httpStatus }: { httpStatus: number } = error.data
     const { message }: { message: string } = error.shape
     switch (httpStatus) {
-      case 409:
+      case 409: {
         // eslint-disable-next-line no-console
         console.log(message)
-        break
+        const updatedRuleSet = await this._update()
+        this._isSaved = true
+        return updatedRuleSet
+      }
       case 401:
         // eslint-disable-next-line no-console
         console.log(message)
@@ -51,9 +54,12 @@ export default class RuleSet {
     }
   }
 
-  private _update() {
-    // TODO: Implement update method
-    throw new Error("Method not implemented.")
+  private async _update() {
+    const { $client } = useNuxtApp()
+    return await $client.updateRuleSet.mutate({
+      title: this.title.value,
+      ruleSet: this._rules.length ? this._rules : undefined,
+    })
   }
 
   async save() {
