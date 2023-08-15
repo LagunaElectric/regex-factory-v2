@@ -1,3 +1,4 @@
+import { TRPCClientError } from "@trpc/client"
 import Rule from "./Rule"
 
 export default class RuleSet {
@@ -11,6 +12,30 @@ export default class RuleSet {
     this._isSaved = isSaved || false
   }
 
+  private _handleSaveError(error: unknown) {
+    if (!(error instanceof TRPCClientError)) {
+      // eslint-disable-next-line no-console
+      console.error(error)
+      return
+    }
+    const { httpStatus }: { httpStatus: number } = error.data
+    const { message }: { message: string } = error.shape
+    switch (httpStatus) {
+      case 409:
+        // eslint-disable-next-line no-console
+        console.log(message)
+        break
+      case 401:
+        // eslint-disable-next-line no-console
+        console.log(message)
+        break
+      default:
+        // eslint-disable-next-line no-console
+        console.error(error)
+        break
+    }
+  }
+
   private async _save() {
     const { $client } = useNuxtApp()
 
@@ -20,16 +45,22 @@ export default class RuleSet {
         ruleSet: this._rules,
       })
       this._isSaved = true
-      console.log(ruleSet)
       return ruleSet
     } catch (error) {
-      console.error(error)
-      console.log(typeof error)
+      this._handleSaveError(error)
     }
   }
 
+  private _update() {
+    // TODO: Implement update method
+    throw new Error("Method not implemented.")
+  }
+
   async save() {
-    await this._save()
+    if (this._isSaved) {
+      return await this._update()
+    }
+    return await this._save()
   }
 
   get isSaved(): boolean {

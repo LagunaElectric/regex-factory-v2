@@ -88,14 +88,17 @@ watch([input, factoryRules.rules], applyRules)
             class="justify-between transition-colors duration-300 mt-2 fill-mode-forward sticky top-0 z-10 dark:bg-primary-dark-700 rounded-sm p-1 border border-primary-light-border dark:border-primary-dark-border"
             @rule-created="(rule) => factoryRules.addRule(rule)"
           />
-          <EditableText v-model="factoryRules.title.value" />
+          <div class="flex gap-1">
+            <EditableText v-model="factoryRules.title.value" class="shrink-0 grow" />
 
-          <IconButton
-            class="w-8 h-8 transition-colors duration-300 fill-mode-forward rounded-sm grow text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active dark:hover:bg-primary-dark-active"
-            tooltip="test"
-            icon-name="mdi:test-tube"
-            @click="factoryRules.save()"
-          />
+            <IconButton
+              class="h-full grow-0 transition-colors duration-300 fill-mode-forward rounded-sm text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active dark:hover:bg-primary-dark-active"
+              tooltip="Save"
+              icon-name="mdi:content-save"
+              @click="factoryRules.save()"
+            />
+          </div>
+
           <Container
             drag-class="bg-primary dark:bg-primary
             border-2 border-primary-hover text-white

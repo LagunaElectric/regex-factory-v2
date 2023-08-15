@@ -66,7 +66,7 @@ export const appRouter = router({
       if (!user || !Object.keys(user).length) {
         throw new TRPCError({
           message: "Failed to save Rule Set: User not found",
-          code: "NOT_FOUND",
+          code: "UNAUTHORIZED",
         })
       }
 
