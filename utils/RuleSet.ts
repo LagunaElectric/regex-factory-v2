@@ -12,30 +12,22 @@ export default class RuleSet {
     this._isSaved = isSaved || false
   }
 
-  private async _handleSaveError(error: unknown) {
+  private _handleSaveError(error: unknown) {
     if (!(error instanceof TRPCClientError)) {
       // eslint-disable-next-line no-console
       console.error(error)
-      return
-    }
-    const { httpStatus }: { httpStatus: number } = error.data
-    const { message }: { message: string } = error.shape
-    switch (httpStatus) {
-      case 409: {
-        // eslint-disable-next-line no-console
-        console.log(message)
-        const updatedRuleSet = await this._update()
-        this._isSaved = true
-        return updatedRuleSet
+      return {
+        status: 500,
+        message: "Internal Server Error",
+        error,
       }
-      case 401:
-        // eslint-disable-next-line no-console
-        console.log(message)
-        break
-      default:
-        // eslint-disable-next-line no-console
-        console.error(error)
-        break
+    }
+    const { httpStatus: status }: { httpStatus: number } = error.data
+    const { message }: { message: string } = error.shape
+    return {
+      status,
+      message,
+      error,
     }
   }
 
@@ -50,7 +42,7 @@ export default class RuleSet {
       this._isSaved = true
       return ruleSet
     } catch (error) {
-      this._handleSaveError(error)
+      return this._handleSaveError(error)
     }
   }
 

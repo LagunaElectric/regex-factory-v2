@@ -44,8 +44,23 @@ const input = ref("")
 const output = ref("")
 const factoryRules = new RuleSet()
 
-function applyRules() {
+const applyRules = () => {
   output.value = factoryRules.apply(input.value)
+}
+
+const saveRules = async() => {
+  const res = await factoryRules.save()
+  // @ts-expect-error - Ignore missing types
+  if (!res.status) { return }
+  // @ts-expect-error - Ignore missing types
+  if (res.status === 409) {
+    // TODO: Prompt user to overwrite rules
+    return
+  }
+  // @ts-expect-error - Ignore missing types
+  if (res.status === 401) {
+    // TODO: Prompt user to login
+  }
 }
 
 const genRuleKey = (rule: Rule, i: number) =>
@@ -95,7 +110,7 @@ watch([input, factoryRules.rules], applyRules)
               class="h-full grow-0 transition-colors duration-300 fill-mode-forward rounded-sm text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active dark:hover:bg-primary-dark-active"
               tooltip="Save"
               icon-name="mdi:content-save"
-              @click="factoryRules.save()"
+              @click="saveRules"
             />
           </div>
 
