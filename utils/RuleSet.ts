@@ -2,14 +2,19 @@ import { TRPCClientError } from "@trpc/client"
 import Rule from "./Rule"
 
 export default class RuleSet {
+  private _id?: string
   private _rules: Rule[]
+  private _isStored: boolean
   private _isSaved: boolean
+  // This could be implemented in a way the prevents
+  // the user from using a title that is already in use.
   title: Ref<string>
 
-  constructor(title?: string, ruleSet?: Rule[], isSaved?: boolean) {
+  constructor(title?: string, ruleSet?: Rule[], isStored?: boolean) {
     this._rules = reactive<Rule[]>(ruleSet || [])
     this.title = ref(title || "Untitled Rule Set")
-    this._isSaved = isSaved || false
+    this._isStored = isStored || false
+    this._isSaved = isStored || false
   }
 
   private _handleSaveError(error: unknown) {
@@ -40,6 +45,8 @@ export default class RuleSet {
         ruleSet: this._rules,
       })
       this._isSaved = true
+      this._isStored = true
+      this._id = ruleSet.id
       return ruleSet
     } catch (error) {
       return this._handleSaveError(error)
@@ -48,17 +55,29 @@ export default class RuleSet {
 
   private async _update() {
     const { $client } = useNuxtApp()
-    return await $client.updateRuleSet.mutate({
+    const updatedRuleSet = await $client.updateRuleSet.mutate({
       title: this.title.value,
       ruleSet: this._rules.length ? this._rules : undefined,
     })
+    this._isSaved = true
+    return updatedRuleSet
   }
 
   async save() {
-    if (this._isSaved) {
-      return await this._update()
+    if (this._isSaved) { return }
+    if (this._isStored) {
+      await this._update()
+      return
     }
-    return await this._save()
+    await this._save()
+  }
+
+  get id(): string | undefined {
+    return this._id
+  }
+
+  get isStored(): boolean {
+    return this._isStored
   }
 
   get isSaved(): boolean {
