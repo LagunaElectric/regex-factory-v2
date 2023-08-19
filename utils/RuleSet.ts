@@ -4,17 +4,17 @@ import Rule from "./Rule"
 export default class RuleSet {
   private _id?: string
   private _rules: Rule[]
-  private _isStored: boolean
-  private _isSaved: boolean
-  // This could be implemented in a way the prevents
-  // the user from using a title that is already in use.
-  title: Ref<string>
+  private _isStored: Ref<boolean>
+  private _isSaved: Ref<boolean>
+  private _client = useNuxtApp().$client
+  private _title: Ref<string>
 
   constructor(title?: string, ruleSet?: Rule[], isStored?: boolean) {
     this._rules = reactive<Rule[]>(ruleSet || [])
-    this.title = ref(title || "Untitled Rule Set")
-    this._isStored = isStored || false
-    this._isSaved = isStored || false
+    this._title = ref(title || "Untitled Rule Set")
+    this._isStored = ref(isStored || false)
+    this._isSaved = ref(isStored || false)
+    this._client = useNuxtApp().$client
   }
 
   private _handleSaveError(error: unknown) {
@@ -37,15 +37,13 @@ export default class RuleSet {
   }
 
   private async _save() {
-    const { $client } = useNuxtApp()
-
     try {
-      const ruleSet = await $client.createRuleSet.mutate({
-        title: this.title.value,
+      const ruleSet = await this._client.createRuleSet.mutate({
+        title: this._title.value,
         ruleSet: this._rules,
       })
-      this._isSaved = true
-      this._isStored = true
+      this._isSaved.value = true
+      this._isStored.value = true
       this._id = ruleSet.id
       return ruleSet
     } catch (error) {
@@ -54,12 +52,11 @@ export default class RuleSet {
   }
 
   private async _update() {
-    const { $client } = useNuxtApp()
-    const updatedRuleSet = await $client.updateRuleSet.mutate({
-      title: this.title.value,
+    const updatedRuleSet = await this._client.updateRuleSet.mutate({
+      title: this._title.value,
       ruleSet: this._rules.length ? this._rules : undefined,
     })
-    this._isSaved = true
+    this._isSaved.value = true
     return updatedRuleSet
   }
 
@@ -72,15 +69,19 @@ export default class RuleSet {
     await this._save()
   }
 
+  private _onModification() {
+    this._isSaved.value = false
+  }
+
   get id(): string | undefined {
     return this._id
   }
 
-  get isStored(): boolean {
+  get isStored(): Ref<boolean> {
     return this._isStored
   }
 
-  get isSaved(): boolean {
+  get isSaved(): Ref<boolean> {
     return this._isSaved
   }
 
@@ -88,24 +89,40 @@ export default class RuleSet {
     return this._rules
   }
 
+  get title(): Ref<string> {
+    return this._title
+  }
+
+  set title(title: string) {
+    // TODO: Add validation
+    this._title.value = title
+    this._onModification()
+  }
+
   addRule(rule: Rule): RuleSet {
     this._rules.push(rule)
+    this._onModification()
     return this
   }
 
   addRules(rules: Rule[]): RuleSet {
     this._rules = this._rules.concat(rules)
+    this._onModification()
     return this
   }
 
   insertRule(rule: Rule, index: number): RuleSet {
     this._rules.splice(index, 0, rule)
+    this._onModification()
     return this
   }
 
   removeRule(rule: Rule): RuleSet {
     const index = this._rules.indexOf(rule)
-    if (index > -1) { this._rules.splice(index, 1) }
+    if (index > -1) {
+      this._rules.splice(index, 1)
+      this._onModification()
+    }
     return this
   }
 
@@ -116,11 +133,14 @@ export default class RuleSet {
    * @returns The method is returning the removed rule at the specified index.
    */
   removeRuleAt(index: number): Rule {
+    this._onModification()
     return this._rules.splice(index, 1)[0]
   }
 
   removeRules(rules: Rule[]): RuleSet {
+    if (!rules.length) { return this }
     for (const rule of rules) { this.removeRule(rule) }
+    this._onModification()
     return this
   }
 
