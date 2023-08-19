@@ -2,67 +2,78 @@ import { TRPCClientError } from "@trpc/client"
 import Rule from "./Rule"
 
 export default class RuleSet {
-  private _id?: string
+  private _id: Ref<string>
+  private _title: Ref<string>
   private _rules: Rule[]
   private _isStored: Ref<boolean>
   private _isSaved: Ref<boolean>
   private _client = useNuxtApp().$client
-  private _title: Ref<string>
 
-  constructor(title?: string, ruleSet?: Rule[], isStored?: boolean) {
-    this._rules = reactive<Rule[]>(ruleSet || [])
+  constructor(id?: string, title?: string, ruleSet?: Rule[], isStored?: boolean) {
+    this._id = ref(id || "")
     this._title = ref(title || "Untitled Rule Set")
+    this._rules = reactive<Rule[]>(ruleSet || [])
     this._isStored = ref(isStored || false)
     this._isSaved = ref(isStored || false)
     this._client = useNuxtApp().$client
   }
 
-  private _handleSaveError(error: unknown) {
-    if (!(error instanceof TRPCClientError)) {
-      // eslint-disable-next-line no-console
-      console.error(error)
-      return {
-        status: 500,
-        message: "Internal Server Error",
-        error,
+  private _isEqualTo(ruleSet: {
+    title: string
+    rules: Rule[]
+  }) {
+    const { title, rules } = ruleSet
+    const isSameTitle = this._title.value === title
+    const isSameRules = this._rules.length === rules?.length && this._rules.every((rule, index) => {
+      return rule.match === rules[index].match &&
+        rule.substitution === rules[index].substitution &&
+        rule.isRegEx === rules[index].isRegEx &&
+        rule.isCaseSensitive === rules[index].isCaseSensitive &&
+        rule.isWholeWord === rules[index].isWholeWord &&
+        rule.isReplaceAll === rules[index].isReplaceAll
+    })
+    return isSameTitle && isSameRules
+  }
+
+  private _handleSaveError(result: { status: number, message?: string, ruleSet?: any }) {
+    switch (result.status) {
+      case 409:{
+        const { ruleSet: existingRuleSet } = result
+        this._id.value = existingRuleSet!.id
+        this._isStored.value = true
+        const { title, rules } = existingRuleSet!
+        this._isSaved.value = this._isEqualTo({ title, rules })
+        break
       }
-    }
-    const { httpStatus: status }: { httpStatus: number } = error.data
-    const { message }: { message: string } = error.shape
-    return {
-      status,
-      message,
-      error,
+      default:{
+        const { status } = result
+        throw new TRPCClientError(status.toString())
+      }
     }
   }
 
   private async _save() {
-    try {
-      const ruleSet = await this._client.createRuleSet.mutate({
-        title: this._title.value,
-        ruleSet: this._rules,
-      })
-      this._isSaved.value = true
-      this._isStored.value = true
-      this._id = ruleSet.id
-      return ruleSet
-    } catch (error) {
-      return this._handleSaveError(error)
+    const result = await this._client.createRuleSet.mutate({
+      title: this._title.value,
+      ruleSet: this._rules,
+    })
+    if (result.status !== 200) {
+      return this._handleSaveError(result)
     }
   }
 
   private async _update() {
-    const updatedRuleSet = await this._client.updateRuleSet.mutate({
+    await this._client.updateRuleSet.mutate({
       title: this._title.value,
       ruleSet: this._rules.length ? this._rules : undefined,
     })
     this._isSaved.value = true
-    return updatedRuleSet
   }
 
-  async save() {
-    if (this._isSaved) { return }
-    if (this._isStored) {
+  async save(overwrite?: boolean) {
+    if (this._isSaved.value) { return }
+    if (this._isStored.value) {
+      if (!overwrite) { return }
       await this._update()
       return
     }
@@ -73,7 +84,7 @@ export default class RuleSet {
     this._isSaved.value = false
   }
 
-  get id(): string | undefined {
+  get id(): Ref<string> {
     return this._id
   }
 

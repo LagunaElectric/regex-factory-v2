@@ -29,9 +29,13 @@ type DragResult = {
 }
 
 const { $client } = useNuxtApp()
+console.log(await $client.getRuleSets.useQuery())
 const { status: sessionStatus } = useSession()
-
 const user = await $client.getUser.useQuery()
+const input = ref("")
+const output = ref("")
+const showOverwritePrompt = ref(false)
+const factoryRules = new RuleSet()
 
 if (sessionStatus.value === "authenticated") {
   if (!Object.keys(user.data.value).length) {
@@ -40,26 +44,14 @@ if (sessionStatus.value === "authenticated") {
   }
 }
 
-const input = ref("")
-const output = ref("")
-const factoryRules = new RuleSet()
-
 const applyRules = () => {
   output.value = factoryRules.apply(input.value)
 }
 
-const saveRules = async() => {
-  const res = await factoryRules.save()
-  // @ts-expect-error - Ignore missing types
-  if (!res.status) { return }
-  // @ts-expect-error - Ignore missing types
-  if (res.status === 409) {
-    // TODO: Prompt user to overwrite rules
-    return
-  }
-  // @ts-expect-error - Ignore missing types
-  if (res.status === 401) {
-    // TODO: Prompt user to login
+const saveRules = async(overwrite?: boolean) => {
+  await factoryRules.save(overwrite)
+  if (factoryRules.isStored.value && !factoryRules.isSaved.value) {
+    showOverwritePrompt.value = true
   }
 }
 
@@ -110,7 +102,7 @@ watch([input, factoryRules.rules], applyRules)
               class="h-full grow-0 transition-colors duration-300 fill-mode-forward rounded-sm text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active dark:hover:bg-primary-dark-active"
               tooltip="Save"
               icon-name="mdi:content-save"
-              @click="saveRules"
+              @click="() => saveRules(true)"
             />
           </div>
 
@@ -146,6 +138,32 @@ watch([input, factoryRules.rules], applyRules)
       <BigText v-model="output" label="Output:" class="pb-2 px-2 lg:pl-0 lg:col-span-2" :readonly="true" />
     </div>
     <AppFooter class="hidden xs:flex" />
+    <Teleport to="body">
+      <div class="relative z-20">
+        <div
+          class="absolute max-w-lg
+                  flex flex-col items-center justify-center top-12 right-12
+                  transition-colors duration-300 fill-mode-forward
+                  text-primary-light-icon dark:text-primary-dark-icon"
+        >
+          <div class="flex flex-col p-5 text-lg font-bold bg-primary-light-900 dark:bg-primary-dark-800">
+            <h1 class="text-xl">
+              Ruleset Debug:
+            </h1>
+            <span>ID: {{ factoryRules.id }}</span>
+            <span>Title: {{ factoryRules.title }}</span>
+            <span>Rules:</span>
+            <ul class="flex flex-col">
+              <li v-for="(rule, i) in factoryRules.rules" :key="i">
+                <pre>{{ JSON.stringify(rule) }}</pre>
+              </li>
+            </ul>
+            <span>isStored: {{ factoryRules.isStored }}</span>
+            <span>isSaved: {{ factoryRules.isSaved }}</span>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 

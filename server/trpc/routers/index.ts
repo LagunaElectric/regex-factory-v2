@@ -53,7 +53,8 @@ export const appRouter = router({
         isWholeWord: z.optional(z.boolean()),
         isReplaceAll: z.optional(z.boolean()),
       })),
-    })).mutation(async({ ctx, input }) => {
+    }))
+    .mutation(async({ ctx, input }) => {
       const { title, description, ruleSet } = input
       const user = await ctx.prisma.user.findUnique({
         select: {
@@ -64,10 +65,10 @@ export const appRouter = router({
         },
       })
       if (!user || !Object.keys(user).length) {
-        throw new TRPCError({
+        return {
+          status: 401,
           message: "Failed to save Rule Set: User not found",
-          code: "UNAUTHORIZED",
-        })
+        }
       }
 
       const existingRuleSet = await ctx.prisma.ruleSet.findFirst({
@@ -75,12 +76,16 @@ export const appRouter = router({
           title,
           authorId: user.id,
         },
+        include: {
+          rules: true,
+        },
       })
       if (existingRuleSet && Object.keys(existingRuleSet).length) {
-        throw new TRPCError({
+        return {
+          status: 409,
           message: "Failed to save Rule Set: Rule Set already exists",
-          code: "CONFLICT",
-        })
+          ruleSet: existingRuleSet,
+        }
       }
 
       const createdRuleSet = await ctx.prisma.ruleSet.create({
@@ -111,7 +116,10 @@ export const appRouter = router({
           rules: true,
         },
       })
-      return createdRuleSet
+      return {
+        status: 200,
+        ruleSet: createdRuleSet,
+      }
     }),
   updateRuleSet: authenticatedProcedure
     .input(z.object({
@@ -166,7 +174,18 @@ export const appRouter = router({
         },
       })
 
-      if (!ruleSet || !ruleSet.length) { return updatedRuleSet }
+      await ctx.prisma.rulesInSets.deleteMany({
+        where: {
+          ruleSetId: updatedRuleSet.id,
+        },
+      })
+
+      if (!ruleSet || !ruleSet.length) {
+        return {
+          ...updatedRuleSet,
+          rules: [],
+        }
+      }
 
       const ruleSetWithIds: {
         id: string | undefined
@@ -211,15 +230,11 @@ export const appRouter = router({
             isWholeWord: !!rule.isWholeWord,
             isReplaceAll: !!rule.isReplaceAll,
             ruleSet: {
-              update: {
-                where: {
-                  ruleId_ruleSetId: {
-                    ruleId: rule.id || "",
-                    ruleSetId: updatedRuleSet.id,
-                  },
-                },
-                data: {
-                  order: i,
+              connect: {
+                order: i,
+                ruleId_ruleSetId: {
+                  ruleId: rule.id || "",
+                  ruleSetId: updatedRuleSet.id,
                 },
               },
             },
@@ -254,6 +269,34 @@ export const appRouter = router({
         },
       }) ?? updatedRuleSet
       return updatedRuleSet
+    }),
+  ruleSetTitleExists: authenticatedProcedure
+    .input(z.object({
+      title: z.string(),
+    })).query(async({ ctx, input }) => {
+      const { title } = input
+      const user = await ctx.prisma.user.findUnique({
+        select: {
+          id: true,
+        },
+        where: {
+          email: ctx.session!.user?.email ?? "",
+        },
+      })
+      if (!user || !Object.keys(user).length) {
+        throw new TRPCError({
+          message: "Failed to verify RuleSet: User not found",
+          code: "UNAUTHORIZED",
+        })
+      }
+
+      const existingRuleSet = await ctx.prisma.ruleSet.findFirst({
+        where: {
+          title,
+          authorId: user.id,
+        },
+      })
+      return !!existingRuleSet
     }),
 })
 

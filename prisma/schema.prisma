@@ -11,7 +11,7 @@ datasource db {
 }
 
 model User {
-  id          String    @id @default(cuid())
+  id          String    @id @default(cuid()) @unique
   email       String    @unique
   name        String?
   displayName String? @unique
@@ -23,7 +23,7 @@ model User {
 }
 
 model RuleSet {
-  id          String   @id @default(cuid())
+  id          String   @id @default(cuid()) @unique
   authorId    String
   author      User     @relation(fields: [authorId], references: [id])
   title       String   @unique
@@ -34,7 +34,7 @@ model RuleSet {
 }
 
 model Rule {
-  id           String   @id @default(cuid())
+  id           String   @id @default(cuid()) @unique
   ruleSet      RulesInSets[]
   author       User     @relation(fields: [authorId], references: [id])
   match        String
