@@ -29,13 +29,14 @@ type DragResult = {
 }
 
 const { $client } = useNuxtApp()
-console.log(await $client.getRuleSets.useQuery())
+// console.log(await $client.getRuleSets.useQuery())
 const { status: sessionStatus } = useSession()
 const user = await $client.getUser.useQuery()
 const input = ref("")
 const output = ref("")
 const showOverwritePrompt = ref(false)
 const factoryRules = new RuleSet()
+const saveIcon = computed(() => factoryRules.isSaved.value ? "mdi:content-save" : "mdi:content-save-alert")
 
 if (sessionStatus.value === "authenticated") {
   if (!Object.keys(user.data.value).length) {
@@ -50,6 +51,7 @@ const applyRules = () => {
 
 const saveRules = async(overwrite?: boolean) => {
   await factoryRules.save(overwrite)
+  // debugger
   if (factoryRules.isStored.value && !factoryRules.isSaved.value) {
     showOverwritePrompt.value = true
   }
@@ -99,10 +101,14 @@ watch([input, factoryRules.rules], applyRules)
             <EditableText v-model="factoryRules.title.value" class="shrink-0 grow" />
 
             <IconButton
-              class="h-full grow-0 transition-colors duration-300 fill-mode-forward rounded-sm text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active dark:hover:bg-primary-dark-active"
+              class="h-full grow-0 transition-colors text-primary-light-icon duration-300 fill-mode-forward rounded-sm hover:bg-primary-light-active dark:hover:bg-primary-dark-active"
+              :class="{
+                'dark:text-primary-dark-icon': factoryRules.isSaved.value,
+                'dark:text-orange-300': !factoryRules.isSaved.value,
+              }"
               tooltip="Save"
-              icon-name="mdi:content-save"
-              @click="() => saveRules(true)"
+              :icon-name="saveIcon"
+              @click="() => saveRules()"
             />
           </div>
 
@@ -146,21 +152,13 @@ watch([input, factoryRules.rules], applyRules)
                   transition-colors duration-300 fill-mode-forward
                   text-primary-light-icon dark:text-primary-dark-icon"
         >
-          <div class="flex flex-col p-5 text-lg font-bold bg-primary-light-900 dark:bg-primary-dark-800">
-            <h1 class="text-xl">
-              Ruleset Debug:
-            </h1>
-            <span>ID: {{ factoryRules.id }}</span>
-            <span>Title: {{ factoryRules.title }}</span>
-            <span>Rules:</span>
-            <ul class="flex flex-col">
-              <li v-for="(rule, i) in factoryRules.rules" :key="i">
-                <pre>{{ JSON.stringify(rule) }}</pre>
-              </li>
-            </ul>
-            <span>isStored: {{ factoryRules.isStored }}</span>
-            <span>isSaved: {{ factoryRules.isSaved }}</span>
-          </div>
+          <AppModal
+            v-if="showOverwritePrompt"
+            title="A RuleSet with this name already exists."
+            message="Do you want to overwrite it?"
+            :on-submit="() => saveRules(true)"
+            :on-close="() => showOverwritePrompt = false"
+          />
         </div>
       </div>
     </Teleport>
@@ -176,7 +174,7 @@ body {
   height: 100vh;
 }
 
-.smooth-dnd-drop-preview-constant-class {
+/*.smooth-dnd-drop-preview-constant-class {
   background-color: red !important;
-}
+}*/
 </style>

@@ -230,11 +230,12 @@ export const appRouter = router({
             isWholeWord: !!rule.isWholeWord,
             isReplaceAll: !!rule.isReplaceAll,
             ruleSet: {
-              connect: {
+              create: {
                 order: i,
-                ruleId_ruleSetId: {
-                  ruleId: rule.id || "",
-                  ruleSetId: updatedRuleSet.id,
+                ruleSet: {
+                  connect: {
+                    id: updatedRuleSet.id,
+                  },
                 },
               },
             },

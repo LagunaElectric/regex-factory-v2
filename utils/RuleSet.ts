@@ -58,7 +58,7 @@ export default class RuleSet {
       ruleSet: this._rules,
     })
     if (result.status !== 200) {
-      return this._handleSaveError(result)
+      this._handleSaveError(result)
     }
   }
 
