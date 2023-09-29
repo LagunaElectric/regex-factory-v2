@@ -129,3 +129,12 @@ const toggleColorMode = () => {
     </div>
   </div>
 </template>
+
+
+<style>
+/* Explicitly set background color to the arrow in the n-dropdown
+   TODO (tanvi): This is probably a bad way to add ad hoc styles, what is a better way? */
+.n-popover-arrow {
+  background-color: #FDF6E3;
+}
+</style>
