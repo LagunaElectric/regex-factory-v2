@@ -34,6 +34,19 @@ Make sure to install the dependencies:
 pnpm install
 ```
 
+Copy the example .env files and add your credentials
+
+```bash
+cp example.env .env
+open .env
+```
+
+Prep the local database so we can use OAuth correctly
+
+```
+npx prisma db push
+```
+
 ### Development Server
 
 Start the development server on http://localhost:3000
