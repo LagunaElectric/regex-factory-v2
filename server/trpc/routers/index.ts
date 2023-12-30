@@ -145,7 +145,7 @@ export const appRouter = router({
       })
       if (!user || !Object.keys(user).length) {
         throw new TRPCError({
-          message: "Failed to save Rule Set: User not found",
+          message: "Failed to update Rule Set: User not found",
           code: "UNAUTHORIZED",
         })
       }
@@ -158,7 +158,7 @@ export const appRouter = router({
       })
       if (!existingRuleSet || !Object.keys(existingRuleSet).length) {
         throw new TRPCError({
-          message: "Failed to save Rule Set: Rule Set not found",
+          message: "Failed to update Rule Set: Rule Set not found",
           code: "NOT_FOUND",
         })
       }
@@ -181,10 +181,7 @@ export const appRouter = router({
       })
 
       if (!ruleSet || !ruleSet.length) {
-        return {
-          ...updatedRuleSet,
-          rules: [],
-        }
+        return updatedRuleSet
       }
 
       const ruleSetWithIds: {
@@ -195,31 +192,35 @@ export const appRouter = router({
         isCaseSensitive: boolean
         isWholeWord: boolean
         isReplaceAll: boolean
-      }[] = await Promise.all(ruleSet.map(async(rule) => {
+      }[] = []
+
+      for (const rule of ruleSet) {
         const existingRule = await ctx.prisma.rule.findFirst({
           where: {
             match: rule.match,
             substitution: rule.substitution,
-            isRegEx: !!rule.isRegEx,
-            isCaseSensitive: !!rule.isCaseSensitive,
-            isWholeWord: !!rule.isWholeWord,
-            isReplaceAll: !!rule.isReplaceAll,
+            isRegEx: rule.isRegEx,
+            isCaseSensitive: rule.isCaseSensitive,
+            isWholeWord: rule.isWholeWord,
+            isReplaceAll: rule.isReplaceAll,
             authorId: user.id,
           },
         })
         if (existingRule && Object.keys(existingRule).length) {
-          return {
+          ruleSetWithIds.push({
             ...rule,
             id: existingRule.id,
-          }
+          })
+        } else {
+          ruleSetWithIds.push({
+            ...rule,
+            id: undefined,
+          })
         }
-        return {
-          ...rule,
-          id: undefined,
-        }
-      }))
+      }
 
-      await Promise.all(ruleSetWithIds.map(async(rule, i) => {
+      for (let i = 0; i < ruleSetWithIds.length; i++) {
+        const rule = ruleSetWithIds[i]
         await ctx.prisma.rule.upsert({
           where: { id: rule.id || "" },
           update: {
@@ -239,7 +240,6 @@ export const appRouter = router({
                 },
               },
             },
-
           },
           create: {
             match: rule.match,
@@ -261,14 +261,14 @@ export const appRouter = router({
             },
           },
         })
-      }))
+      }
 
       updatedRuleSet = await ctx.prisma.ruleSet.findUnique({
         where: { id: updatedRuleSet.id },
         include: {
           rules: true,
         },
-      }) ?? updatedRuleSet
+      }) || updatedRuleSet
       return updatedRuleSet
     }),
   ruleSetTitleExists: authenticatedProcedure
