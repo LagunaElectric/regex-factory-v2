@@ -116,9 +116,24 @@ export const appRouter = router({
           rules: true,
         },
       })
+
+      const rules = []
+
+      for (const rule of createdRuleSet.rules) {
+        const newRule = await ctx.prisma.rule.findUnique({
+          where: {
+            id: rule.ruleId,
+          },
+        })
+        if (newRule && Object.keys(newRule).length) {
+          rules.push(_.omit(newRule, "authorId", "createdAt", "updatedAt"))
+        }
+      }
+
       return {
         status: 200,
-        ruleSet: createdRuleSet,
+        ruleSetId: createdRuleSet.id,
+        rules,
       }
     }),
   updateRuleSet: authenticatedProcedure
@@ -126,6 +141,7 @@ export const appRouter = router({
       title: z.string().optional(),
       description: z.string().optional(),
       ruleSet: z.array(z.object({
+        id: z.string().optional(),
         match: z.string(),
         substitution: z.string(),
         isRegEx: z.boolean(),
@@ -184,43 +200,43 @@ export const appRouter = router({
         return updatedRuleSet
       }
 
-      const ruleSetWithIds: {
-        id: string | undefined
-        match: string
-        substitution: string
-        isRegEx: boolean
-        isCaseSensitive: boolean
-        isWholeWord: boolean
-        isReplaceAll: boolean
-      }[] = []
+      // const ruleSetWithIds: {
+      //   id: string | undefined
+      //   match: string
+      //   substitution: string
+      //   isRegEx: boolean
+      //   isCaseSensitive: boolean
+      //   isWholeWord: boolean
+      //   isReplaceAll: boolean
+      // }[] = []
 
-      for (const rule of ruleSet) {
-        const existingRule = await ctx.prisma.rule.findFirst({
-          where: {
-            match: rule.match,
-            substitution: rule.substitution,
-            isRegEx: rule.isRegEx,
-            isCaseSensitive: rule.isCaseSensitive,
-            isWholeWord: rule.isWholeWord,
-            isReplaceAll: rule.isReplaceAll,
-            authorId: user.id,
-          },
-        })
-        if (existingRule && Object.keys(existingRule).length) {
-          ruleSetWithIds.push({
-            ...rule,
-            id: existingRule.id,
-          })
-        } else {
-          ruleSetWithIds.push({
-            ...rule,
-            id: undefined,
-          })
-        }
-      }
+      // for (const rule of ruleSet) {
+      //   const existingRule = await ctx.prisma.rule.findFirst({
+      //     where: {
+      //       match: rule.match,
+      //       substitution: rule.substitution,
+      //       isRegEx: rule.isRegEx,
+      //       isCaseSensitive: rule.isCaseSensitive,
+      //       isWholeWord: rule.isWholeWord,
+      //       isReplaceAll: rule.isReplaceAll,
+      //       authorId: user.id,
+      //     },
+      //   })
+      //   if (existingRule && Object.keys(existingRule).length) {
+      //     ruleSetWithIds.push({
+      //       ...rule,
+      //       id: existingRule.id,
+      //     })
+      //   } else {
+      //     ruleSetWithIds.push({
+      //       ...rule,
+      //       id: undefined,
+      //     })
+      //   }
+      // }
 
-      for (let i = 0; i < ruleSetWithIds.length; i++) {
-        const rule = ruleSetWithIds[i]
+      for (let i = 0; i < ruleSet.length; i++) {
+        const rule = ruleSet[i]
         await ctx.prisma.rule.upsert({
           where: { id: rule.id || "" },
           update: {
@@ -269,7 +285,21 @@ export const appRouter = router({
           rules: true,
         },
       }) || updatedRuleSet
-      return updatedRuleSet
+
+      const rules = []
+
+      for (const rule of updatedRuleSet.rules) {
+        const newRule = await ctx.prisma.rule.findUnique({
+          where: {
+            id: rule.ruleId,
+          },
+        })
+        if (newRule && Object.keys(newRule).length) {
+          rules.push(_.omit(newRule, "authorId", "createdAt", "updatedAt"))
+        }
+      }
+
+      return rules
     }),
   ruleSetTitleExists: authenticatedProcedure
     .input(z.object({

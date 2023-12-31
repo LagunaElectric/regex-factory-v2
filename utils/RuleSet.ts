@@ -59,15 +59,22 @@ export default class RuleSet {
     })
     if (result.status !== 200) {
       this._handleSaveError(result)
+      return
     }
+    this._rules = result.rules as Rule[] || this._rules
+    this._id.value = result.ruleSetId || this._id.value
+    this._isSaved.value = true
+    this._isStored.value = true
   }
 
   private async _update() {
-    await this._client.updateRuleSet.mutate({
+    const result = await this._client.updateRuleSet.mutate({
       title: this._title.value,
       ruleSet: this._rules.length ? this._rules : undefined,
     })
+    this._rules.splice(0, this._rules.length, ...(result as Rule[] || []))
     this._isSaved.value = true
+    this._isStored.value = true
   }
 
   async save(overwrite?: boolean) {
