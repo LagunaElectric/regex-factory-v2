@@ -43,9 +43,11 @@ export const appRouter = router({
     }),
   createRuleSet: authenticatedProcedure
     .input(z.object({
+      id: z.optional(z.string()),
       title: z.string(),
       description: z.optional(z.string()),
       ruleSet: z.array(z.object({
+        id: z.optional(z.string()),
         match: z.string(),
         substitution: z.string(),
         isRegEx: z.optional(z.boolean()),
@@ -71,15 +73,16 @@ export const appRouter = router({
         }
       }
 
-      const existingRuleSet = await ctx.prisma.ruleSet.findFirst({
-        where: {
-          title,
-          authorId: user.id,
-        },
-        include: {
-          rules: true,
-        },
-      })
+      const existingRuleSet = input.id
+        ? await ctx.prisma.ruleSet.findFirst({
+          where: {
+            id: input.id,
+          },
+          include: {
+            rules: true,
+          },
+        })
+        : null
       if (existingRuleSet && Object.keys(existingRuleSet).length) {
         return {
           status: 409,
@@ -138,6 +141,7 @@ export const appRouter = router({
     }),
   updateRuleSet: authenticatedProcedure
     .input(z.object({
+      id: z.string(),
       title: z.string().optional(),
       description: z.string().optional(),
       ruleSet: z.array(z.object({
@@ -168,8 +172,7 @@ export const appRouter = router({
 
       const existingRuleSet = await ctx.prisma.ruleSet.findFirst({
         where: {
-          title,
-          authorId: user.id,
+          id: input.id,
         },
       })
       if (!existingRuleSet || !Object.keys(existingRuleSet).length) {

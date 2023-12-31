@@ -54,6 +54,7 @@ export default class RuleSet {
 
   private async _save() {
     const result = await this._client.createRuleSet.mutate({
+      id: this._id.value,
       title: this._title.value,
       ruleSet: this._rules,
     })
@@ -61,7 +62,9 @@ export default class RuleSet {
       this._handleSaveError(result)
       return
     }
-    this._rules = result.rules as Rule[] || this._rules
+    // We're splicing this instead of assignment because
+    // dirtect assignment will cause the reactivity to break
+    this._rules.splice(0, this._rules.length, ...(result.rules as Rule[] || []))
     this._id.value = result.ruleSetId || this._id.value
     this._isSaved.value = true
     this._isStored.value = true
@@ -69,9 +72,12 @@ export default class RuleSet {
 
   private async _update() {
     const result = await this._client.updateRuleSet.mutate({
+      id: this._id.value,
       title: this._title.value,
       ruleSet: this._rules.length ? this._rules : undefined,
     })
+    // We're splicing this instead of assignment because
+    // dirtect assignment will cause the reactivity to break
     this._rules.splice(0, this._rules.length, ...(result as Rule[] || []))
     this._isSaved.value = true
     this._isStored.value = true

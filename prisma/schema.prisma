@@ -26,7 +26,7 @@ model RuleSet {
   id          String   @id @default(cuid()) @unique
   authorId    String
   author      User     @relation(fields: [authorId], references: [id])
-  title       String   @unique
+  title       String
   description String?
   rules       RulesInSets[]
   createdAt   DateTime @default(now())

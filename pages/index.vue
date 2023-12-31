@@ -50,11 +50,12 @@ const applyRules = () => {
 }
 
 const saveRules = async(overwrite?: boolean) => {
-  await factoryRules.save(overwrite)
-  // debugger
-  if (factoryRules.isStored.value && !factoryRules.isSaved.value) {
-    showOverwritePrompt.value = true
+  if (!overwrite) {
+    if (factoryRules.isStored.value && !factoryRules.isSaved.value) {
+      showOverwritePrompt.value = true
+    }
   }
+  await factoryRules.save(overwrite)
 }
 
 const genRuleKey = (rule: Rule, i: number) =>
