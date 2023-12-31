@@ -49,6 +49,7 @@ model Rule {
 }
 
 model RulesInSets {
+  id           String   @id @default(cuid()) @unique
   rule      Rule     @relation(fields: [ruleId], references: [id])
   ruleId    String
   ruleSet   RuleSet  @relation(fields: [ruleSetId], references: [id])
@@ -56,6 +57,4 @@ model RulesInSets {
   order     Int
   createdAt DateTime @default(now())
   editedAt  DateTime @default(now()) @updatedAt
-
-  @@id([ruleId, ruleSetId])
 }
