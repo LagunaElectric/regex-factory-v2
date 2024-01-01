@@ -130,6 +130,7 @@ watch([input, factoryRules.rules], applyRules)
             >
               <FactoryRule
                 v-bind="rule"
+                :id="genRuleKey(rule, i) + '00'"
                 class="cursor-grab px-1 text-lg bg-primary-light-900 dark:bg-primary-dark-500 rounded-sm border border-primary-light-border dark:border-primary-dark-border"
                 @update:is-reg-ex="(val) => (rule.isRegEx = val)"
                 @update:is-case-sensitive="(val) => (rule.isCaseSensitive = val)"

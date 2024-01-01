@@ -1,4 +1,5 @@
 import { TRPCClientError } from "@trpc/client"
+import _ from "lodash"
 import Rule from "./Rule"
 
 export default class RuleSet {
@@ -64,7 +65,8 @@ export default class RuleSet {
     }
     // We're splicing this instead of assignment because
     // dirtect assignment will cause the reactivity to break
-    this._rules.splice(0, this._rules.length, ...(result.rules as Rule[] || []))
+    const rules = _.cloneDeep(result.rules) as Rule[]
+    this._rules.splice(0, this._rules.length, ...(Array.isArray(rules) ? rules : []) as Rule[])
     this._id.value = result.ruleSetId || this._id.value
     this._isSaved.value = true
     this._isStored.value = true
@@ -78,7 +80,8 @@ export default class RuleSet {
     })
     // We're splicing this instead of assignment because
     // dirtect assignment will cause the reactivity to break
-    this._rules.splice(0, this._rules.length, ...(result as Rule[] || []))
+    const rules = _.cloneDeep(result) as Rule[]
+    this._rules.splice(0, this._rules.length, ...(Array.isArray(rules) ? rules : []) as Rule[])
     this._isSaved.value = true
     this._isStored.value = true
   }
