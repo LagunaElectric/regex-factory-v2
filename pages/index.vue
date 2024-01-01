@@ -99,7 +99,7 @@ watch([input, factoryRules.rules], applyRules)
             @rule-created="(rule) => factoryRules.addRule(rule)"
           />
           <div class="flex gap-1">
-            <EditableText v-model="factoryRules.title.value" class="shrink-0 grow" />
+            <EditableText :text="factoryRules.title.value" class="shrink-0 grow" @on-finish-editing="(val) => factoryRules.title = val" />
 
             <IconButton
               class="h-full grow-0 transition-colors text-primary-light-icon duration-300 fill-mode-forward rounded-sm hover:bg-primary-light-active dark:hover:bg-primary-dark-active"
@@ -155,7 +155,7 @@ watch([input, factoryRules.rules], applyRules)
         >
           <AppModal
             v-if="showOverwritePrompt"
-            title="A RuleSet with this name already exists."
+            title="This RuleSet already exists."
             message="Do you want to overwrite it?"
             :on-submit="() => saveRules(true)"
             :on-close="() => showOverwritePrompt = false"
