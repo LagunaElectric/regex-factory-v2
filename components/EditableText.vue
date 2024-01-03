@@ -25,7 +25,7 @@ function finishEditing() {
 </script>
 
 <template>
-  <div class="after:w-full after:h-[1px] after:bg-primary-dark-border after:content-[''] after:absolute after:left-0 after:bottom-0 relative cursor-text" @click="() => console.info('clicked')">
+  <div class="after:w-full after:h-[1px] after:bg-primary-dark-border after:content-[''] after:absolute after:left-0 after:bottom-0 relative cursor-text">
     <input
       v-if="isEditing"
       ref="inputRef"
