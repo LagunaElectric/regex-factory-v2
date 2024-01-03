@@ -30,15 +30,15 @@ const value = computed({
       {{ props.label }}
     </label>
     <textarea
+      id="textInput"
+      v-model="value"
       class="resize-none min-w-32 focus-visible:outline-2 focus-visible:outline-double focus-visible:outline-primary-light-icon dark:focus-visible:outline-primary-dark-icon w-full h-full transition-colors duration-300 fill-mode-forward text-primary-light-icon bg-primary-light-700 dark:bg-primary-dark-700 dark:text-primary-dark-icon border-primary-light-border dark:border-primary-dark-border border tracking-wide rounded-sm p-2"
       name="input"
-      id="textInput"
       cols="30"
       rows="10"
       autocomplete="off"
       spellcheck="false"
       :readonly="props.readonly"
-      v-model="value"
-    ></textarea>
+    />
   </div>
 </template>

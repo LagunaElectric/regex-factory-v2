@@ -1,28 +1,8 @@
 <script setup lang="ts">
 // @ts-expect-error - Ignore missing types
 import { Container, Draggable } from "vue3-smooth-dnd"
-
 import { ref } from "vue"
-import { FactoryRuleProps } from "components/FactoryRule.vue"
-
-type DragResult = {
-  removedIndex: number | null
-  addedIndex: number | null
-  payload: FactoryRuleProps
-  droppedElement: any
-}
-
-const { $client } = useNuxtApp()
-const { status: sessionStatus } = useSession()
-
-const user = await $client.getUser.useQuery()
-
-if (sessionStatus.value === "authenticated") {
-  if (!Object.keys(user.data.value).length) {
-    await $client.createUser.mutate()
-    await user.refresh()
-  }
-}
+import Rule from "utils/Rule"
 
 const appTitle = "RegEx Factory"
 const appDescription =
@@ -41,45 +21,72 @@ useSeoMeta({
   twitterCard: "summary",
 })
 
-const input = ref("")
-const output = ref("")
-
-const factoryRules = reactive<FactoryRuleProps[]>([])
-
-function applyRules() {
-  const regexFactory = new RegExFactory(factoryRules)
-  output.value = regexFactory.process(input.value)
+type DragResult = {
+  removedIndex: number | null
+  addedIndex: number | null
+  payload: Rule
+  droppedElement: any
 }
 
-const genRuleKey = (rule: FactoryRuleProps, i: number) =>
+const { $client } = useNuxtApp()
+// console.log(await $client.getRuleSets.useQuery())
+const { status: sessionStatus } = useSession()
+const user = await $client.getUser.useQuery()
+const input = ref("")
+const output = ref("")
+const showOverwritePrompt = ref(false)
+const factoryRules = new RuleSet()
+const saveIcon = computed(() => factoryRules.isSaved.value ? "mdi:content-save" : "mdi:content-save-alert")
+
+if (sessionStatus.value === "authenticated") {
+  if (!Object.keys(user.data.value).length) {
+    await $client.createUser.mutate()
+    await user.refresh()
+  }
+}
+
+const applyRules = () => {
+  output.value = factoryRules.apply(input.value)
+}
+
+const saveRules = async(overwrite?: boolean) => {
+  if (!overwrite) {
+    if (factoryRules.isStored.value && !factoryRules.isSaved.value) {
+      showOverwritePrompt.value = true
+    }
+  }
+  await factoryRules.save(overwrite)
+}
+
+const genRuleKey = (rule: Rule, i: number) =>
   `${i}-${((rule.match.length * (rule.substitution.length || 1.68)) / 2) * rule.match.charCodeAt(0)}`.replace(".", "")
 
-const applyDrag = (arr: typeof factoryRules, dragResult: DragResult) => {
+const applyDrag = (dragResult: DragResult) => {
   const { removedIndex, addedIndex, payload } = dragResult
 
-  if (removedIndex === null && addedIndex === null) { return arr }
+  if (removedIndex === null && addedIndex === null) { return factoryRules.rules }
   let itemToAdd = payload
 
   if (removedIndex !== null) {
-    itemToAdd = arr.splice(removedIndex, 1)[0]
+    itemToAdd = factoryRules.removeRuleAt(removedIndex)
   }
   if (addedIndex !== null) {
-    arr.splice(addedIndex, 0, itemToAdd)
+    factoryRules.insertRule(itemToAdd, addedIndex)
   }
 }
 
 const onDrop = (e: DragResult) => {
-  applyDrag(factoryRules, e)
+  applyDrag(e)
 }
 
-watch([input, factoryRules], applyRules)
+watch([input, factoryRules.rules], applyRules)
 </script>
 
 <template>
   <div
     class="flex flex-col h-screen transition-colors duration-300 fill-mode-forward max-h-screen text-primary-light-icon dark:text-primary-dark-icon border-primary-light-border dark:border-primary-dark-border"
   >
-    <HeaderBar />
+    <AppHeader />
     <div
       class="grid lg:grid-cols-3 transition-colors duration-300 fill-mode-forward grow max-h-full lg:grid-rows-2 grid-rows-3 gap-1 justify-stretch items-stretch bg-primary-light-900 dark:bg-primary-dark-800 dark:text-neutral-200"
     >
@@ -89,8 +96,23 @@ watch([input, factoryRules], applyRules)
         >
           <RuleFactory
             class="justify-between transition-colors duration-300 mt-2 fill-mode-forward sticky top-0 z-10 dark:bg-primary-dark-700 rounded-sm p-1 border border-primary-light-border dark:border-primary-dark-border"
-            @rule-created="(rule) => factoryRules.push(rule)"
+            @rule-created="(rule) => factoryRules.addRule(rule)"
           />
+          <div class="flex gap-1">
+            <EditableText :text="factoryRules.title.value" class="shrink-0 grow" @on-finish-editing="(val) => factoryRules.title = val" />
+
+            <IconButton
+              class="h-full grow-0 transition-colors text-primary-light-icon duration-300 fill-mode-forward rounded-sm hover:bg-primary-light-active dark:hover:bg-primary-dark-active"
+              :class="{
+                'dark:text-primary-dark-icon': factoryRules.isSaved.value,
+                'dark:text-orange-300': !factoryRules.isSaved.value,
+              }"
+              tooltip="Save"
+              :icon-name="saveIcon"
+              @click="() => saveRules()"
+            />
+          </div>
+
           <Container
             drag-class="bg-primary dark:bg-primary
             border-2 border-primary-hover text-white
@@ -103,17 +125,18 @@ watch([input, factoryRules], applyRules)
             @drop="(e: DragResult) => onDrop(e)"
           >
             <Draggable
-              v-for="(rule, i) in factoryRules"
+              v-for="(rule, i) in factoryRules.rules"
               :key="genRuleKey(rule, i)"
             >
               <FactoryRule
                 v-bind="rule"
+                :id="genRuleKey(rule, i) + '00'"
                 class="cursor-grab px-1 text-lg bg-primary-light-900 dark:bg-primary-dark-500 rounded-sm border border-primary-light-border dark:border-primary-dark-border"
                 @update:is-reg-ex="(val) => (rule.isRegEx = val)"
                 @update:is-case-sensitive="(val) => (rule.isCaseSensitive = val)"
                 @update:is-whole-word="(val) => (rule.isWholeWord = val)"
                 @update:is-replace-all="(val) => (rule.isReplaceAll = val)"
-                @delete="() => factoryRules.splice(i, 1)"
+                @delete="() => factoryRules.removeRuleAt(i)"
               />
             </Draggable>
           </Container>
@@ -122,7 +145,25 @@ watch([input, factoryRules], applyRules)
       <BigText v-model="input" label="Input:" class="px-2 lg:pl-0 lg:pt-2 lg:col-span-2" />
       <BigText v-model="output" label="Output:" class="pb-2 px-2 lg:pl-0 lg:col-span-2" :readonly="true" />
     </div>
-    <Footer class="hidden xs:flex" />
+    <AppFooter class="hidden xs:flex" />
+    <Teleport to="body">
+      <div class="relative z-20">
+        <div
+          class="absolute max-w-lg
+                  flex flex-col items-center justify-center top-12 right-12
+                  transition-colors duration-300 fill-mode-forward
+                  text-primary-light-icon dark:text-primary-dark-icon"
+        >
+          <AppModal
+            v-if="showOverwritePrompt"
+            title="This RuleSet already exists."
+            message="Do you want to overwrite it?"
+            :on-submit="() => saveRules(true)"
+            :on-close="() => showOverwritePrompt = false"
+          />
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -135,7 +176,7 @@ body {
   height: 100vh;
 }
 
-.smooth-dnd-drop-preview-constant-class {
+/*.smooth-dnd-drop-preview-constant-class {
   background-color: red !important;
-}
+}*/
 </style>

@@ -1,14 +1,7 @@
 <script setup lang="ts">
-import { ReplaceRule } from "utils/ReplaceRule"
+import Rule from "utils/Rule"
 
-export interface FactoryRuleProps extends ReplaceRule {
-  isRegEx: boolean
-  isCaseSensitive: boolean
-  isWholeWord: boolean
-  isReplaceAll: boolean
-}
-
-const props = defineProps<FactoryRuleProps>()
+const props = defineProps<Rule>()
 const emit = defineEmits([
   "update:isRegEx",
   "update:isCaseSensitive",
