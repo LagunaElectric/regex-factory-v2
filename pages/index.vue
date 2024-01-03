@@ -84,8 +84,11 @@ watch([input, factoryRules.rules], applyRules)
 
 <template>
   <div
-    class="flex flex-col h-screen transition-colors duration-300 fill-mode-forward max-h-screen text-primary-light-icon dark:text-primary-dark-icon border-primary-light-border dark:border-primary-dark-border"
+    class="relative flex flex-col h-screen transition-colors duration-300 fill-mode-forward max-h-screen text-primary-light-icon dark:text-primary-dark-icon border-primary-light-border dark:border-primary-dark-border"
   >
+    <AppSideBar class="xs:flex z-20 absolute top-0 left-0 h-full w-96 bg-primary-light-900 dark:bg-primary-dark-800">
+      <p>test this out</p>
+    </AppSideBar>
     <AppHeader />
     <div
       class="grid lg:grid-cols-3 transition-colors duration-300 fill-mode-forward grow max-h-full lg:grid-rows-2 grid-rows-3 gap-1 justify-stretch items-stretch bg-primary-light-900 dark:bg-primary-dark-800 dark:text-neutral-200"

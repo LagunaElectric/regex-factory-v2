@@ -21,7 +21,7 @@
     "vue"
   ],
   // Tailwind Support, see https://tailwindcss.nuxt.dev/tailwind/editor-support
-  "tailwindCSS.experimental.configFile": ".nuxt/tailwind.config.d.ts",
+  "tailwindCSS.experimental.configFile": "tailwind.config.ts",
   "files.associations": {
     "*.css": "tailwindcss"
   },
