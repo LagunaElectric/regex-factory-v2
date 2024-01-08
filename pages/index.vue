@@ -35,8 +35,39 @@ const user = await $client.getUser.useQuery()
 const input = ref("")
 const output = ref("")
 const showOverwritePrompt = ref(false)
+const showSidebar = ref(true)
 const factoryRules = new RuleSet()
 const saveIcon = computed(() => factoryRules.isSaved.value ? "mdi:content-save" : "mdi:content-save-alert")
+const getRuleSets = $client.getRuleSets.useQuery()
+const ruleSetList = computed(() => {
+  const { data } = getRuleSets
+  const ruleSets = data.value.map((ruleSet) => {
+    const { id, title, rules } = ruleSet
+    return {
+      id,
+      title,
+      rules: rules.map((rule) => {
+        const { id, match, substitution, isRegEx, isCaseSensitive, isWholeWord, isReplaceAll } = rule.rule
+        return {
+          id,
+          order: rule.order,
+          match,
+          substitution,
+          isRegEx,
+          isCaseSensitive,
+          isWholeWord,
+          isReplaceAll,
+        }
+      }).sort((a, b) => a.order - b.order),
+    }
+  })
+  // console.log(ruleSets)
+  return ruleSets
+})
+
+// const refreshRulesets = async() => {
+//   await getRuleSets.refresh()
+// }
 
 if (sessionStatus.value === "authenticated") {
   if (!Object.keys(user.data.value).length) {
@@ -86,13 +117,25 @@ watch([input, factoryRules.rules], applyRules)
   <div
     class="relative flex flex-col h-screen transition-colors duration-300 fill-mode-forward max-h-screen text-primary-light-icon dark:text-primary-dark-icon border-primary-light-border dark:border-primary-dark-border"
   >
-    <AppSideBar class="xs:flex z-20 absolute top-0 left-0 h-full w-96 bg-primary-light-900 dark:bg-primary-dark-800">
-      <p>test this out</p>
-    </AppSideBar>
     <AppHeader />
     <div
       class="grid lg:grid-cols-3 transition-colors duration-300 fill-mode-forward grow max-h-full lg:grid-rows-2 grid-rows-3 gap-1 justify-stretch items-stretch bg-primary-light-900 dark:bg-primary-dark-800 dark:text-neutral-200"
     >
+      <AppSideBar
+        class="flex flex-col p-4  gap-1 w-screen h-full transition-transform duration-300 fill-mode-forward z-20"
+        :class="{
+          'translate-x-0': showSidebar,
+          '-translate-x-full': !showSidebar,
+        }"
+        @close="() => showSidebar = false"
+      >
+        <RulesetListItem
+          v-for="ruleSet in ruleSetList"
+          :key="ruleSet.id"
+          v-bind="ruleSet"
+          class="mx-1 rounded-sm border border-primary-dark-border dark:border-primary-light-border transition-colors duration-300 fill-mode-forward"
+        />
+      </AppSideBar>
       <div class="relative h-full transition-colors duration-300 fill-mode-forward lg:row-span-2">
         <div
           class="absolute inset-0 transition-colors duration-300 fill-mode-forward flex flex-col overflow-auto gap-1 px-2 lg:pb-2"
@@ -112,7 +155,7 @@ watch([input, factoryRules.rules], applyRules)
               }"
               tooltip="Save"
               :icon-name="saveIcon"
-              @click="() => saveRules()"
+              @click="() => showSidebar = !showSidebar"
             />
           </div>
 

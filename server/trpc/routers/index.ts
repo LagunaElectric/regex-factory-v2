@@ -36,9 +36,14 @@ export const appRouter = router({
           },
         },
         include: {
-          rules: true,
+          rules: {
+            include: {
+              rule: true,
+            },
+          },
         },
       })
+
       return ruleSets
     }),
   createRuleSet: authenticatedProcedure
