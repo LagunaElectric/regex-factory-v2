@@ -40,7 +40,8 @@ const factoryRules = new RuleSet()
 const saveIcon = computed(() => factoryRules.isSaved.value ? "mdi:content-save" : "mdi:content-save-alert")
 const getRuleSets = $client.getRuleSets.useQuery()
 const ruleSetList = computed(() => {
-  const { data } = getRuleSets
+  const { data, status } = getRuleSets
+  if (!data.value || status.value === "error") { return [] }
   const ruleSets = data.value.map((ruleSet) => {
     const { id, title, rules } = ruleSet
     return {
@@ -61,7 +62,6 @@ const ruleSetList = computed(() => {
       }).sort((a, b) => a.order - b.order),
     }
   })
-  // console.log(ruleSets)
   return ruleSets
 })
 
@@ -142,10 +142,10 @@ watch([input, factoryRules.rules], applyRules)
         >
           <RuleFactory
             class="justify-between transition-colors duration-300 mt-2 fill-mode-forward sticky top-0 z-10 dark:bg-primary-dark-700 rounded-sm p-1 border border-primary-light-border dark:border-primary-dark-border"
-            @rule-created="(rule) => factoryRules.addRule(rule)"
+            @rule-created="(rule: Rule) => factoryRules.addRule(rule)"
           />
           <div class="flex gap-1">
-            <EditableText :text="factoryRules.title.value" class="shrink-0 grow" @on-finish-editing="(val) => factoryRules.title = val" />
+            <EditableText :text="factoryRules.title.value" class="shrink-0 grow" @on-finish-editing="(val: string) => factoryRules.title = val" />
 
             <IconButton
               class="h-full grow-0 transition-colors text-primary-light-icon duration-300 fill-mode-forward rounded-sm hover:bg-primary-light-active dark:hover:bg-primary-dark-active"
@@ -153,8 +153,14 @@ watch([input, factoryRules.rules], applyRules)
                 'dark:text-primary-dark-icon': factoryRules.isSaved.value,
                 'dark:text-orange-300': !factoryRules.isSaved.value,
               }"
-              tooltip="Save"
+              tooltip="Save Ruleset"
               :icon-name="saveIcon"
+              @click="() => saveRules()"
+            />
+            <IconButton
+              class="h-full grow-0 transition-colors text-primary-light-icon dark:text-primary-dark-icon duration-300 fill-mode-forward rounded-sm hover:bg-primary-light-active dark:hover:bg-primary-dark-active"
+              tooltip="Load Ruleset"
+              icon-name="material-symbols:list-alt-add"
               @click="() => showSidebar = !showSidebar"
             />
           </div>
@@ -178,10 +184,10 @@ watch([input, factoryRules.rules], applyRules)
                 v-bind="rule"
                 :id="genRuleKey(rule, i) + '00'"
                 class="cursor-grab px-1 text-lg bg-primary-light-900 dark:bg-primary-dark-500 rounded-sm border border-primary-light-border dark:border-primary-dark-border"
-                @update:is-reg-ex="(val) => (rule.isRegEx = val)"
-                @update:is-case-sensitive="(val) => (rule.isCaseSensitive = val)"
-                @update:is-whole-word="(val) => (rule.isWholeWord = val)"
-                @update:is-replace-all="(val) => (rule.isReplaceAll = val)"
+                @update:is-reg-ex="(val: boolean) => (rule.isRegEx = val)"
+                @update:is-case-sensitive="(val: boolean) => (rule.isCaseSensitive = val)"
+                @update:is-whole-word="(val: boolean) => (rule.isWholeWord = val)"
+                @update:is-replace-all="(val: boolean) => (rule.isReplaceAll = val)"
                 @delete="() => factoryRules.removeRuleAt(i)"
               />
             </Draggable>
