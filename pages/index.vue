@@ -122,19 +122,24 @@ watch([input, factoryRules.rules], applyRules)
       class="grid lg:grid-cols-3 transition-colors duration-300 fill-mode-forward grow max-h-full lg:grid-rows-2 grid-rows-3 gap-1 justify-stretch items-stretch bg-primary-light-900 dark:bg-primary-dark-800 dark:text-neutral-200"
     >
       <AppSideBar
-        class="flex flex-col p-4  gap-1 w-screen h-full transition-transform duration-300 fill-mode-forward z-20"
+        class="flex flex-col p-4 gap-1 w-96 h-full transition-transform duration-300 fill-mode-forward z-20"
         :class="{
           'translate-x-0': showSidebar,
           '-translate-x-full': !showSidebar,
         }"
         @close="() => showSidebar = false"
       >
-        <RulesetListItem
-          v-for="ruleSet in ruleSetList"
-          :key="ruleSet.id"
-          v-bind="ruleSet"
-          class="mx-1 rounded-sm border border-primary-dark-border dark:border-primary-light-border transition-colors duration-300 fill-mode-forward"
-        />
+        <h2 class="text-lg text-primary-light-icon dark:text-primary-dark-icon font-bold transition-colors duration-300 fill-mode-forward">
+          Load Ruleset
+        </h2>
+        <div class="flex flex-col gap-1 overflow-y-auto overflow-x-hidden">
+          <RulesetListItem
+            v-for="ruleSet in ruleSetList"
+            :key="ruleSet.id"
+            v-bind="ruleSet"
+            class="rounded-sm border border-primary-dark-border dark:border-primary-light-border transition-colors duration-300 fill-mode-forward"
+          />
+        </div>
       </AppSideBar>
       <div class="relative h-full transition-colors duration-300 fill-mode-forward lg:row-span-2">
         <div
