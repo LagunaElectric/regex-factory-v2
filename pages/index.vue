@@ -36,8 +36,8 @@ const input = ref("")
 const output = ref("")
 const showOverwritePrompt = ref(false)
 const showSidebar = ref(true)
-const factoryRules = new RuleSet()
-const saveIcon = computed(() => factoryRules.isSaved.value ? "mdi:content-save" : "mdi:content-save-alert")
+const factoryRules = ref(new RuleSet())
+const saveIcon = computed(() => factoryRules.value.isSaved ? "mdi:content-save" : "mdi:content-save-alert")
 const getRuleSets = $client.getRuleSets.useQuery()
 const ruleSetList = computed(() => {
   const { data, status } = getRuleSets
@@ -77,16 +77,16 @@ if (sessionStatus.value === "authenticated") {
 }
 
 const applyRules = () => {
-  output.value = factoryRules.apply(input.value)
+  output.value = factoryRules.value.apply(input.value)
 }
 
 const saveRules = async(overwrite?: boolean) => {
   if (!overwrite) {
-    if (factoryRules.isStored.value && !factoryRules.isSaved.value) {
+    if (factoryRules.value.isStored && !factoryRules.value.isSaved) {
       showOverwritePrompt.value = true
     }
   }
-  await factoryRules.save(overwrite)
+  await factoryRules.value.save(overwrite)
 }
 
 const genRuleKey = (rule: Rule, i: number) =>
@@ -95,14 +95,14 @@ const genRuleKey = (rule: Rule, i: number) =>
 const applyDrag = (dragResult: DragResult) => {
   const { removedIndex, addedIndex, payload } = dragResult
 
-  if (removedIndex === null && addedIndex === null) { return factoryRules.rules }
+  if (removedIndex === null && addedIndex === null) { return factoryRules.value.rules }
   let itemToAdd = payload
 
   if (removedIndex !== null) {
-    itemToAdd = factoryRules.removeRuleAt(removedIndex)
+    itemToAdd = factoryRules.value.removeRuleAt(removedIndex)
   }
   if (addedIndex !== null) {
-    factoryRules.insertRule(itemToAdd, addedIndex)
+    factoryRules.value.insertRule(itemToAdd, addedIndex)
   }
 }
 
@@ -110,7 +110,7 @@ const onDrop = (e: DragResult) => {
   applyDrag(e)
 }
 
-watch([input, factoryRules.rules], applyRules)
+watch([input, factoryRules.value.rules], applyRules)
 </script>
 
 <template>
@@ -138,6 +138,11 @@ watch([input, factoryRules.rules], applyRules)
             :key="ruleSet.id"
             v-bind="ruleSet"
             class="rounded-sm border border-primary-dark-border dark:border-primary-light-border transition-colors duration-300 fill-mode-forward"
+            @item-selected="() => {
+              showSidebar = false
+              console.log('Trying to load ruleset:', ruleSet)
+              factoryRules = new RuleSet(ruleSet.id, ruleSet.title, ruleSet.rules, true)
+            }"
           />
         </div>
       </AppSideBar>
@@ -150,13 +155,13 @@ watch([input, factoryRules.rules], applyRules)
             @rule-created="(rule: Rule) => factoryRules.addRule(rule)"
           />
           <div class="flex gap-1">
-            <EditableText :text="factoryRules.title.value" class="shrink-0 grow" @on-finish-editing="(val: string) => factoryRules.title = val" />
+            <EditableText :text="factoryRules.title" class="shrink-0 grow" @on-finish-editing="(val: string) => factoryRules.title = val" />
 
             <IconButton
               class="h-full grow-0 transition-colors text-primary-light-icon duration-300 fill-mode-forward rounded-sm hover:bg-primary-light-active dark:hover:bg-primary-dark-active"
               :class="{
-                'dark:text-primary-dark-icon': factoryRules.isSaved.value,
-                'dark:text-orange-300': !factoryRules.isSaved.value,
+                'dark:text-primary-dark-icon': factoryRules.isSaved,
+                'dark:text-orange-300': !factoryRules.isSaved,
               }"
               tooltip="Save Ruleset"
               :icon-name="saveIcon"

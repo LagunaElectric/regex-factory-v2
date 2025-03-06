@@ -16,6 +16,7 @@ const props = defineProps<{
     }[]
 
   }>()
+const emit = defineEmits(["itemSelected"])
 
 const isExpanded = ref(false)
 
@@ -35,9 +36,10 @@ const isExpanded = ref(false)
       />
       <IconButton
         icon-name="line-md:confirm-circle"
-        tooltip="Expand"
+        tooltip="Load"
         color="green"
         class="rounded-sm transition-colors duration-300 fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-900 hover:dark:bg-primary-dark-icon/30"
+        @click="() => emit('itemSelected')"
       />
     </div>
   </div>
