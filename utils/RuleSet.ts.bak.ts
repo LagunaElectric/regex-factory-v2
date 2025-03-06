@@ -3,19 +3,19 @@ import _ from "lodash"
 import Rule from "./Rule"
 
 export default class RuleSet {
-  private _id: string
-  private _title: string
+  private _id: Ref<string>
+  private _title: Ref<string>
   private _rules: Rule[]
-  private _isStored: boolean
-  private _isSaved: boolean
+  private _isStored: Ref<boolean>
+  private _isSaved: Ref<boolean>
   private _client = useNuxtApp().$client
 
   constructor(id?: string, title?: string, ruleSet?: Rule[], isStored?: boolean) {
-    this._id = id || ""
-    this._title = title || "Untitled Rule Set"
+    this._id = ref(id || "")
+    this._title = ref(title || "Untitled Rule Set")
     this._rules = reactive<Rule[]>(ruleSet || [])
-    this._isStored = isStored || false
-    this._isSaved = isStored || false
+    this._isStored = ref(isStored || false)
+    this._isSaved = ref(isStored || false)
     this._client = useNuxtApp().$client
   }
 
@@ -24,7 +24,7 @@ export default class RuleSet {
     rules: Rule[]
   }) {
     const { title, rules } = ruleSet
-    const isSameTitle = this._title === title
+    const isSameTitle = this._title.value === title
     const isSameRules = this._rules.length === rules?.length && this._rules.every((rule, index) => {
       return rule.match === rules[index].match &&
         rule.substitution === rules[index].substitution &&
@@ -40,10 +40,10 @@ export default class RuleSet {
     switch (result.status) {
       case 409:{
         const { ruleSet: existingRuleSet } = result
-        this._id = existingRuleSet!.id
-        this._isStored = true
+        this._id.value = existingRuleSet!.id
+        this._isStored.value = true
         const { title, rules } = existingRuleSet!
-        this._isSaved = this._isEqualTo({ title, rules })
+        this._isSaved.value = this._isEqualTo({ title, rules })
         break
       }
       default:{
@@ -55,8 +55,8 @@ export default class RuleSet {
 
   private async _save() {
     const result = await this._client.createRuleSet.mutate({
-      id: this._id,
-      title: this._title,
+      id: this._id.value,
+      title: this._title.value,
       ruleSet: this._rules,
     })
     if (result.status !== 200) {
@@ -67,28 +67,28 @@ export default class RuleSet {
     // dirtect assignment will cause the reactivity to break
     const rules = _.cloneDeep(result.rules) as Rule[]
     this._rules.splice(0, this._rules.length, ...(Array.isArray(rules) ? rules : []) as Rule[])
-    this._id = result.ruleSetId || this._id
-    this._isSaved = true
-    this._isStored = true
+    this._id.value = result.ruleSetId || this._id.value
+    this._isSaved.value = true
+    this._isStored.value = true
   }
 
   private async _update() {
     const result = await this._client.updateRuleSet.mutate({
-      id: this._id,
-      title: this._title,
+      id: this._id.value,
+      title: this._title.value,
       ruleSet: this._rules.length ? this._rules : undefined,
     })
     // We're splicing this instead of assignment because
     // dirtect assignment will cause the reactivity to break
     const rules = _.cloneDeep(result) as Rule[]
     this._rules.splice(0, this._rules.length, ...(Array.isArray(rules) ? rules : []) as Rule[])
-    this._isSaved = true
-    this._isStored = true
+    this._isSaved.value = true
+    this._isStored.value = true
   }
 
   async save(overwrite?: boolean) {
-    if (this._isSaved) { return }
-    if (this._isStored) {
+    if (this._isSaved.value) { return }
+    if (this._isStored.value) {
       if (!overwrite) { return }
       await this._update()
       return
@@ -97,18 +97,18 @@ export default class RuleSet {
   }
 
   private _onModification() {
-    this._isSaved = false
+    this._isSaved.value = false
   }
 
-  get id(): string {
+  get id(): Ref<string> {
     return this._id
   }
 
-  get isStored(): boolean {
+  get isStored(): Ref<boolean> {
     return this._isStored
   }
 
-  get isSaved(): boolean {
+  get isSaved(): Ref<boolean> {
     return this._isSaved
   }
 
@@ -116,13 +116,13 @@ export default class RuleSet {
     return this._rules
   }
 
-  get title(): string {
+  get title(): Ref<string> {
     return this._title
   }
 
   set title(title: string) {
     // TODO: Add validation
-    this._title = title
+    this._title.value = title
     this._onModification()
   }
 
