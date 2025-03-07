@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // @ts-expect-error - Ignore missing types
 import { Container, Draggable } from "vue3-smooth-dnd"
-import { ref } from "vue"
+import { ref, useTemplateRef } from "vue"
+import { onClickOutside } from "@vueuse/core"
 import Rule from "utils/Rule"
 
 const appTitle = "RegEx Factory"
@@ -35,6 +36,10 @@ const user = await $client.getUser.useQuery()
 const input = ref("")
 const output = ref("")
 const showOverwritePrompt = ref(false)
+const sidebarRef = useTemplateRef<HTMLElement>("sidebar")
+onClickOutside(sidebarRef, () => {
+  showSidebar.value = false
+})
 const showSidebar = ref(true)
 const factoryRules = ref(new RuleSet())
 const saveIcon = computed(() => factoryRules.value.isSaved ? "mdi:content-save" : "mdi:content-save-alert")
@@ -115,29 +120,29 @@ watch([input, factoryRules.value.rules], applyRules)
 
 <template>
   <div
-    class="relative flex flex-col h-screen transition-colors duration-300 fill-mode-forward max-h-screen text-primary-light-icon dark:text-primary-dark-icon border-primary-light-border dark:border-primary-dark-border"
+    class="relative flex flex-col h-screen max-h-screen transition-colors duration-300 fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon border-primary-light-border dark:border-primary-dark-border"
   >
     <AppHeader />
     <div
-      class="grid lg:grid-cols-3 transition-colors duration-300 fill-mode-forward grow max-h-full lg:grid-rows-2 grid-rows-3 gap-1 justify-stretch items-stretch bg-primary-light-900 dark:bg-primary-dark-800 dark:text-neutral-200"
+      class="grid items-stretch max-h-full grid-rows-3 gap-1 transition-colors duration-300 lg:grid-cols-3 fill-mode-forward grow lg:grid-rows-2 justify-stretch bg-primary-light-900 dark:bg-primary-dark-800 dark:text-neutral-200"
     >
       <AppSideBar
-        class="flex flex-col p-4 gap-1 w-96 h-full transition-transform duration-300 fill-mode-forward z-20"
+        ref="sidebar"
+        class="z-20 flex flex-col h-full gap-1 p-4 transition-transform duration-300 w-96 fill-mode-forward"
         :class="{
           'translate-x-0': showSidebar,
           '-translate-x-full': !showSidebar,
         }"
         @close="() => showSidebar = false"
       >
-        <h2 class="text-lg text-primary-light-icon dark:text-primary-dark-icon font-bold transition-colors duration-300 fill-mode-forward">
+        <h2 class="text-lg font-bold transition-colors duration-300 text-primary-light-icon dark:text-primary-dark-icon fill-mode-forward">
           Load Ruleset
         </h2>
-        <div class="flex flex-col gap-1 overflow-y-auto overflow-x-hidden">
+        <div class="flex flex-col gap-1 overflow-x-hidden overflow-y-auto">
           <RulesetListItem
             v-for="ruleSet in ruleSetList"
             :key="ruleSet.id"
             v-bind="ruleSet"
-            class="rounded-sm border border-primary-dark-border dark:border-primary-light-border transition-colors duration-300 fill-mode-forward"
             @item-selected="() => {
               showSidebar = false
               console.log('Trying to load ruleset:', ruleSet)
@@ -148,17 +153,17 @@ watch([input, factoryRules.value.rules], applyRules)
       </AppSideBar>
       <div class="relative h-full transition-colors duration-300 fill-mode-forward lg:row-span-2">
         <div
-          class="absolute inset-0 transition-colors duration-300 fill-mode-forward flex flex-col overflow-auto gap-1 px-2 lg:pb-2"
+          class="absolute inset-0 flex flex-col gap-1 px-2 overflow-auto transition-colors duration-300 fill-mode-forward lg:pb-2"
         >
           <RuleFactory
-            class="justify-between transition-colors duration-300 mt-2 fill-mode-forward sticky top-0 z-10 dark:bg-primary-dark-700 rounded-sm p-1 border border-primary-light-border dark:border-primary-dark-border"
+            class="sticky top-0 z-10 justify-between p-1 mt-2 transition-colors duration-300 border rounded-sm fill-mode-forward dark:bg-primary-dark-700 border-primary-light-border dark:border-primary-dark-border"
             @rule-created="(rule: Rule) => factoryRules.addRule(rule)"
           />
           <div class="flex gap-1">
             <EditableText :text="factoryRules.title" class="shrink-0 grow" @on-finish-editing="(val: string) => factoryRules.title = val" />
 
             <IconButton
-              class="h-full grow-0 transition-colors text-primary-light-icon duration-300 fill-mode-forward rounded-sm hover:bg-primary-light-active dark:hover:bg-primary-dark-active"
+              class="h-full transition-colors duration-300 rounded-sm grow-0 text-primary-light-icon fill-mode-forward hover:bg-primary-light-active dark:hover:bg-primary-dark-active"
               :class="{
                 'dark:text-primary-dark-icon': factoryRules.isSaved,
                 'dark:text-orange-300': !factoryRules.isSaved,
@@ -168,7 +173,7 @@ watch([input, factoryRules.value.rules], applyRules)
               @click="() => saveRules()"
             />
             <IconButton
-              class="h-full grow-0 transition-colors text-primary-light-icon dark:text-primary-dark-icon duration-300 fill-mode-forward rounded-sm hover:bg-primary-light-active dark:hover:bg-primary-dark-active"
+              class="h-full transition-colors duration-300 rounded-sm grow-0 text-primary-light-icon dark:text-primary-dark-icon fill-mode-forward hover:bg-primary-light-active dark:hover:bg-primary-dark-active"
               tooltip="Load Ruleset"
               icon-name="material-symbols:list-alt-add"
               @click="() => showSidebar = !showSidebar"
@@ -176,14 +181,9 @@ watch([input, factoryRules.value.rules], applyRules)
           </div>
 
           <Container
-            drag-class="bg-primary dark:bg-primary
-            border-2 border-primary-hover text-white
-            transition duration-100 ease-in z-50
-            transform rotate-6 scale-110 cursor-grabbing"
-            drop-class="transition duration-100
-            ease-in z-50 transform
-            -rotate-2 scale-90"
-            class="space-y-1 overflow-y-auto overflow-x-hidden grow p-1 rounded-sm border transition-colors duration-300 fill-mode-forward border-primary-light-border dark:border-primary-dark-border bg-primary-light-700 dark:bg-primary-dark-700"
+            drag-class="z-50 text-white transition duration-100 ease-in transform scale-110 border-2 bg-primary dark:bg-primary border-primary-hover rotate-6 cursor-grabbing"
+            drop-class="z-50 transition duration-100 ease-in transform scale-90 -rotate-2"
+            class="p-1 space-y-1 overflow-x-hidden overflow-y-auto transition-colors duration-300 border rounded-sm grow fill-mode-forward border-primary-light-border dark:border-primary-dark-border bg-primary-light-700 dark:bg-primary-dark-700"
             @drop="(e: DragResult) => onDrop(e)"
           >
             <Draggable
@@ -193,7 +193,7 @@ watch([input, factoryRules.value.rules], applyRules)
               <FactoryRule
                 v-bind="rule"
                 :id="genRuleKey(rule, i) + '00'"
-                class="cursor-grab px-1 text-lg bg-primary-light-900 dark:bg-primary-dark-500 rounded-sm border border-primary-light-border dark:border-primary-dark-border"
+                class="px-1 text-lg border rounded-sm cursor-grab bg-primary-light-900 dark:bg-primary-dark-500 border-primary-light-border dark:border-primary-dark-border"
                 @update:is-reg-ex="(val: boolean) => (rule.isRegEx = val)"
                 @update:is-case-sensitive="(val: boolean) => (rule.isCaseSensitive = val)"
                 @update:is-whole-word="(val: boolean) => (rule.isWholeWord = val)"
@@ -205,16 +205,13 @@ watch([input, factoryRules.value.rules], applyRules)
         </div>
       </div>
       <BigText v-model="input" label="Input:" class="px-2 lg:pl-0 lg:pt-2 lg:col-span-2" />
-      <BigText v-model="output" label="Output:" class="pb-2 px-2 lg:pl-0 lg:col-span-2" :readonly="true" />
+      <BigText v-model="output" label="Output:" class="px-2 pb-2 lg:pl-0 lg:col-span-2" :readonly="true" />
     </div>
     <AppFooter class="hidden xs:flex" />
     <Teleport to="body">
       <div class="relative z-20">
         <div
-          class="absolute max-w-lg
-                  flex flex-col items-center justify-center top-12 right-12
-                  transition-colors duration-300 fill-mode-forward
-                  text-primary-light-icon dark:text-primary-dark-icon"
+          class="absolute flex flex-col items-center justify-center max-w-lg transition-colors duration-300 top-12 right-12 fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon"
         >
           <AppModal
             v-if="showOverwritePrompt"
