@@ -1,7 +1,14 @@
 <script setup lang="ts">
-import Rule from "utils/Rule"
-
-const props = defineProps<Rule>()
+const props = defineProps<{
+  id: string | undefined
+  match: string
+  substitution: string
+  isRegEx: boolean
+  isCaseSensitive: boolean
+  isWholeWord: boolean
+  isReplaceAll: boolean
+  noEdit?: boolean
+}>()
 const emit = defineEmits([
   "update:isRegEx",
   "update:isCaseSensitive",
@@ -36,14 +43,14 @@ const requestDelete = () => {
 
 <template>
   <div
-    class="flex max-w-full transition-colors duration-300 fill-mode-forward justify-between items-center py-1 min-w-0 break-all relative"
+    class="relative flex items-center justify-between max-w-full min-w-0 py-1 break-all transition-colors duration-300 fill-mode-forward"
   >
-    <span ref="dummyLetter" class="text-sm font-mono text-transparent absolute z-0">a</span>
-    <div class="flex gap-2 items-center transition-colors duration-300 fill-mode-forward grow">
+    <span ref="dummyLetter" class="absolute z-0 font-mono text-sm text-transparent">a</span>
+    <div class="flex items-center gap-2 transition-colors duration-300 fill-mode-forward grow">
       <TruncText
         :text="props.match"
         :letter-width="letterWidth"
-        class="font-mono transition-colors duration-300 fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon grow text-sm basis-1"
+        class="font-mono text-sm transition-colors duration-300 fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon grow basis-1"
       />
       <span
         class="transition-colors duration-300 fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon grow-0 shrink-0"
@@ -53,14 +60,14 @@ const requestDelete = () => {
       <TruncText
         :text="props.substitution"
         :letter-width="letterWidth"
-        class="font-mono transition-colors duration-300 fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon grow text-sm basis-1"
+        class="font-mono text-sm transition-colors duration-300 fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon grow basis-1"
       />
     </div>
-    <div class="flex gap-1 h-fit items-center shrink-0 dark:text-primary-dark-icon">
+    <div v-if="!props.noEdit" class="flex items-center gap-1 h-fit shrink-0 dark:text-primary-dark-icon">
       <IconButton
         icon-name="mdi:regex"
         tooltip="Use RegEx"
-        class="rounded-sm transition-colors duration-300 fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active hover:dark:bg-primary-dark-active"
+        class="transition-colors duration-300 rounded-sm fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active hover:dark:bg-primary-dark-active"
         :class="{
           'bg-primary-light-active dark:bg-primary-dark-active': props.isRegEx,
         }"
@@ -69,7 +76,7 @@ const requestDelete = () => {
       <IconButton
         icon-name="mdi:format-letter-case"
         tooltip="Match Case"
-        class="rounded-sm transition-colors duration-300 fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active hover:dark:bg-primary-dark-active"
+        class="transition-colors duration-300 rounded-sm fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active hover:dark:bg-primary-dark-active"
         :class="{
           'bg-primary-light-active dark:bg-primary-dark-active': props.isCaseSensitive,
         }"
@@ -78,7 +85,7 @@ const requestDelete = () => {
       <IconButton
         icon-name="material-symbols:match-word-rounded"
         tooltip="Match Whole Word"
-        class="rounded-sm transition-colors duration-300 fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active hover:dark:bg-primary-dark-active"
+        class="transition-colors duration-300 rounded-sm fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active hover:dark:bg-primary-dark-active"
         :class="{
           'bg-primary-light-active dark:bg-primary-dark-active ': props.isWholeWord,
         }"
@@ -87,7 +94,7 @@ const requestDelete = () => {
       <IconButton
         icon-name="codicon:replace-all"
         tooltip="Replace All"
-        class="rounded-sm transition-colors duration-300 fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active hover:dark:bg-primary-dark-active"
+        class="transition-colors duration-300 rounded-sm fill-mode-forward text-primary-light-icon dark:text-primary-dark-icon hover:bg-primary-light-active hover:dark:bg-primary-dark-active"
         :class="{
           'bg-primary-light-active dark:bg-primary-dark-active ': props.isReplaceAll,
         }"
@@ -96,7 +103,7 @@ const requestDelete = () => {
       <IconButton
         icon-name="mdi:delete-outline"
         tooltip="Delete"
-        class="rounded-sm text-red-400 transition-colors duration-300 fill-mode-forward hover:bg-primary-light-active hover:dark:bg-primary-dark-active"
+        class="text-red-400 transition-colors duration-300 rounded-sm fill-mode-forward hover:bg-primary-light-active hover:dark:bg-primary-dark-active"
         @click="requestDelete"
       />
     </div>

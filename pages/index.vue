@@ -40,7 +40,7 @@ const sidebarRef = useTemplateRef<HTMLElement>("sidebar")
 onClickOutside(sidebarRef, () => {
   showSidebar.value = false
 })
-const showSidebar = ref(true)
+const showSidebar = ref(false)
 const factoryRules = ref(new RuleSet())
 const saveIcon = computed(() => factoryRules.value.isSaved ? "mdi:content-save" : "mdi:content-save-alert")
 const getRuleSets = $client.getRuleSets.useQuery()
@@ -92,6 +92,7 @@ const saveRules = async(overwrite?: boolean) => {
     }
   }
   await factoryRules.value.save(overwrite)
+  getRuleSets.refresh()
 }
 
 const genRuleKey = (rule: Rule, i: number) =>
