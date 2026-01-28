@@ -34,7 +34,7 @@
     "@trpc/client": "^10.36.0",
     "@trpc/server": "^10.36.0",
     "floating-vue": "2.0.0-beta.24",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "next-auth": "^4.22.3",
     "superjson": "^1.13.1",
     "trpc-nuxt": "^0.7.0",
